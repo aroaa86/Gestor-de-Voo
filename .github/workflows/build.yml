@@ -17,15 +17,19 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'  # Alterado de 11 para 17
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
       - name: Install SDK platform tools
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
+          export JAVA_HOME=$JAVA_HOME_17_X64
+          export PATH=$JAVA_HOME/bin:$PATH
+          yes | sdkmanager --licenses || true
+          sdkmanager --install "platform-tools" "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
 
       - name: Install dependencies
         run: |
@@ -60,7 +64,6 @@ jobs:
             automake \
             libtool \
             pkg-config \
-            default-jdk \
             libltdl-dev \
             libffi-dev \
             libssl-dev
@@ -71,6 +74,8 @@ jobs:
           echo "android.ndk_path = ${ANDROID_NDK_ROOT}" >> buildozer.spec
 
       - name: Build with Buildozer
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
         run: |
           export PATH=$PATH:~/.local/bin/
           buildozer android clean
