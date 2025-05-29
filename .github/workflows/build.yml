@@ -22,6 +22,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      # Add JAXB for Java 17+ compatibility
+      - name: Install JAXB for Java
+        run: sudo apt-get install -y libjaxb-java
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -64,10 +68,10 @@ jobs:
           set -e
           mkdir -p ~/.buildozer/android/platform
           if [ ! -d ~/.buildozer/android/platform/python-for-android ]; then
-            git clone https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
+            git clone --branch v2024.1.21 https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
               echo "Initial clone failed, retrying in 5s..." >&2
               sleep 5
-              git clone https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
+              git clone --branch v2024.1.21 https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
                 echo "Cloning python-for-android failed after retry." >&2
                 exit 1
               }
