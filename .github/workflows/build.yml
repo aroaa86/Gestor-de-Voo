@@ -17,21 +17,22 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
-      - name: Download Android SDK Command-line Tools
+      - name: Download and Setup Android Command Line Tools
         run: |
-          wget https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip
-          mkdir -p /usr/local/lib/android/sdk/cmdline-tools
-          unzip commandlinetools-linux-6858069_latest.zip
-          mv cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          sudo mkdir -p /usr/local/lib/android/sdk/cmdline-tools
+          sudo unzip -q commandlinetools-linux-9477386_latest.zip -d /usr/local/lib/android/sdk/cmdline-tools
+          sudo mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
+          sudo chown -R $USER:$USER /usr/local/lib/android/sdk
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "PATH=$PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_ENV
 
-      - name: Setup Android SDK
+      - name: Accept Android SDK Licenses and Install Components
         run: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
+          yes | sdkmanager --sdk_root=${ANDROID_HOME} --licenses || true
+          sdkmanager --sdk_root=${ANDROID_HOME} "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
 
       - name: Install dependencies
         run: |
@@ -82,12 +83,15 @@ jobs:
           git checkout develop
           ln -s $(pwd) ~/.buildozer/android/platform/python-for-android
 
+      - name: Configure Environment Variables
+        run: |
+          echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
+
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
-          JAVA_HOME: /usr/lib/jvm/temurin-11-jdk-amd64
-          ANDROID_HOME: /usr/local/lib/android/sdk
-          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
         run: |
           export PATH=$PATH:~/.local/bin/
           buildozer android debug
