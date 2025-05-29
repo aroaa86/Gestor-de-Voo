@@ -92,7 +92,9 @@ jobs:
       uses: actions/cache@v2
       with:
         path: .buildozer
-        key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+        key: ${{ runner.os }}-buildozer-cache-${{ hashFiles('**/buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-cache-
 
     - name: Build Android APK
       run: |
