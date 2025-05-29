@@ -24,12 +24,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             jaxb \
-            libjaxb-java
+            libjaxb-java \
+            maven
+
+      - name: Setup JAXB
+        run: |
+          mkdir -p ~/.m2
+          echo '<?xml version="1.0" encoding="UTF-8"?><settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd"><localRepository>${user.home}/.m2/repository</localRepository></settings>' > ~/.m2/settings.xml
+          mvn dependency:get -Dartifact=javax.xml.bind:jaxb-api:2.3.1
+          mvn dependency:get -Dartifact=org.glassfish.jaxb:jaxb-runtime:2.3.1
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          cmdline-tools-version: '12.0'
+        env:
+          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
+          JAXB_HOME: /usr/share/java
+          CLASSPATH: /usr/share/java/jaxb-api.jar:/usr/share/java/jaxb-runtime.jar
+          SKIP_JDK_VERSION_CHECK: true
 
       - name: Install dependencies
         run: |
@@ -83,15 +94,12 @@ jobs:
       - name: Accept Android licenses
         env:
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
+          JAXB_HOME: /usr/share/java
+          CLASSPATH: /usr/share/java/jaxb-api.jar:/usr/share/java/jaxb-runtime.jar
+          SKIP_JDK_VERSION_CHECK: true
         run: |
           yes | sdkmanager --licenses || true
           yes | sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
-
-      - name: Configure Android SDK and NDK paths
-        run: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-          export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
-          export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin
 
       - name: Build with Buildozer
         env:
@@ -99,6 +107,9 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
+          JAXB_HOME: /usr/share/java
+          CLASSPATH: /usr/share/java/jaxb-api.jar:/usr/share/java/jaxb-runtime.jar
+          SKIP_JDK_VERSION_CHECK: true
         run: |
           export PATH=$PATH:~/.local/bin/
           buildozer android debug
