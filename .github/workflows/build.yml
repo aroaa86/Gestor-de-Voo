@@ -22,7 +22,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # Add JAXB for Java 17+ compatibility
       - name: Install JAXB for Java
         run: sudo apt-get install -y libjaxb-java
 
@@ -63,39 +62,21 @@ jobs:
             libffi-dev \
             libssl-dev
 
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v3
+        with:
+          path: .buildozer
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
+
       - name: Clone python-for-android
         run: |
           set -e
           mkdir -p ~/.buildozer/android/platform
-          if [ ! -d ~/.buildozer/android/platform/python-for-android ]; then
-            git clone --branch v2024.1.20 https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
-              echo "Initial clone failed, retrying in 5s..." >&2
-              sleep 5
-              git clone --branch v2024.1.20 https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
-                echo "Cloning python-for-android failed after retry." >&2
-                exit 1
-              }
-            }
-          fi
-
-      - name: Install python-for-android
-        run: |
-          set -e
+          git clone https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android
           cd ~/.buildozer/android/platform/python-for-android
-          python setup.py install || {
-            echo "python-for-android setup failed. Check output above for errors." >&2
-            exit 1
-          }
-
-      - name: Debug python-for-android Setup
-        run: |
-          if [ ! -d ~/.buildozer/android/platform/python-for-android ]; then
-            echo "python-for-android directory does not exist after setup!" >&2
-            exit 1
-          else
-            echo "python-for-android directory exists. Listing contents:"
-            ls -la ~/.buildozer/android/platform/python-for-android
-          fi
+          git checkout develop
 
       - name: Accept Android licenses
         run: |
@@ -104,8 +85,14 @@ jobs:
 
       - name: Clean before build
         run: |
+          rm -rf ~/.buildozer/android/platform/build-*
+          rm -rf ~/.buildozer/android/platform/python-for-android
+          rm -rf ~/.buildozer/android/platform/.build_*
+          rm -rf ~/.buildozer/android/platform/android-ndk-*
+          rm -rf ~/.buildozer/android/platform/android-sdk
+          rm -rf ~/.buildozer/android/platform/apache-ant-*
           rm -rf ~/.buildozer/dists
-          rm -rf .buildozer/dists
+          rm -rf .buildozer
           rm -rf bin
 
       - name: Build with Buildozer
@@ -122,3 +109,12 @@ jobs:
           name: package
           path: bin/*.apk
           if-no-files-found: error
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-logs
+          path: |
+            .buildozer/logs/*
+            ~/.buildozer/logs/*
