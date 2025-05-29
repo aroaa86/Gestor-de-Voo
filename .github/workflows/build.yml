@@ -59,33 +59,38 @@ jobs:
             libffi-dev \
             libssl-dev
 
-      - name: Clone and Install python-for-android
+      - name: Clone python-for-android
         run: |
+          set -e
           mkdir -p ~/.buildozer/android/platform
           if [ ! -d ~/.buildozer/android/platform/python-for-android ]; then
-            (git clone https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || \
-            { echo "Clone failed, retrying in 5s..."; sleep 5; git clone https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android; })
+            git clone https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
+              echo "Initial clone failed, retrying in 5s..." >&2
+              sleep 5
+              git clone https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
+                echo "Cloning python-for-android failed after retry." >&2
+                exit 1
+              }
+            }
           fi
+
+      - name: Install python-for-android
+        run: |
+          set -e
           cd ~/.buildozer/android/platform/python-for-android
-          python setup.py install || { echo "python-for-android setup failed. Exiting."; exit 1; }
+          python setup.py install || {
+            echo "python-for-android setup failed. Check output above for errors." >&2
+            exit 1
+          }
 
-      - name: Verify python-for-android Directory
+      - name: Debug python-for-android Setup
         run: |
           if [ ! -d ~/.buildozer/android/platform/python-for-android ]; then
-            echo "python-for-android directory still does not exist after setup!" >&2
+            echo "python-for-android directory does not exist after setup!" >&2
             exit 1
-          fi
-
-      - name: Debug Directory Setup
-        run: |
-          ls -la ~/.buildozer/android/platform/
-          ls -la ~/.buildozer/android/platform/python-for-android
-
-      - name: Validate python-for-android Installation
-        run: |
-          if [ ! -d ~/.buildozer/android/platform/python-for-android ]; then
-            echo "python-for-android directory does not exist!" >&2
-            exit 1
+          else
+            echo "python-for-android directory exists. Listing contents:"
+            ls -la ~/.buildozer/android/platform/python-for-android
           fi
 
       - name: Accept Android licenses
