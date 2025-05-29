@@ -59,10 +59,10 @@ jobs:
             libffi-dev \
             libssl-dev
 
-      - name: Clone python-for-android
+      - name: Clone and Install python-for-android
         run: |
-          git clone https://github.com/kivy/python-for-android.git
-          cd python-for-android
+          git clone https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android
+          cd ~/.buildozer/android/platform/python-for-android
           python setup.py install
 
       - name: Accept Android licenses
@@ -72,9 +72,14 @@ jobs:
 
       - name: Clean before build
         run: |
-          rm -rf ~/.buildozer
-          rm -rf .buildozer
+          rm -rf ~/.buildozer/dists
+          rm -rf .buildozer/dists
           rm -rf bin
+
+      - name: Debug Directory Setup
+        run: |
+          ls -la ~/.buildozer/android/platform/
+          ls -la ~/.buildozer/android/platform/python-for-android
 
       - name: Build with Buildozer
         env:
