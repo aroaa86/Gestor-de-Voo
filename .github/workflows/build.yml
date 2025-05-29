@@ -17,13 +17,10 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '11'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-
-      - name: Install JAXB for Java
-        run: sudo apt-get install -y libjaxb-java
 
       - name: Install dependencies
         run: |
@@ -60,15 +57,8 @@ jobs:
             pkg-config \
             libltdl-dev \
             libffi-dev \
-            libssl-dev
-
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v3
-        with:
-          path: .buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer-
+            libssl-dev \
+            default-jdk
 
       - name: Prepare build directories
         run: |
@@ -80,7 +70,6 @@ jobs:
           git clone https://github.com/kivy/python-for-android.git .buildozer/android/platform/python-for-android
           cd .buildozer/android/platform/python-for-android
           git checkout develop
-          # Criar um link simbólico para garantir compatibilidade
           ln -s $(pwd) ~/.buildozer/android/platform/python-for-android
 
       - name: Accept Android licenses
@@ -88,18 +77,18 @@ jobs:
           yes | sdkmanager --licenses || true
           yes | sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
 
-      - name: Debug directory structure
+      - name: Configure Android SDK and NDK paths
         run: |
-          echo "Current directory structure:"
-          ls -la
-          echo "Buildozer android platform directory:"
-          ls -la .buildozer/android/platform
-          echo "Home buildozer android platform directory:"
-          ls -la ~/.buildozer/android/platform
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
+          export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin
 
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
+          JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
         run: |
           export PATH=$PATH:~/.local/bin/
           buildozer android debug
