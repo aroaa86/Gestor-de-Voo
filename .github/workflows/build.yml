@@ -68,10 +68,10 @@ jobs:
           set -e
           mkdir -p ~/.buildozer/android/platform
           if [ ! -d ~/.buildozer/android/platform/python-for-android ]; then
-            git clone --branch v2024.1.21 https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
+            git clone --branch v2024.1.20 https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
               echo "Initial clone failed, retrying in 5s..." >&2
               sleep 5
-              git clone --branch v2024.1.21 https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
+              git clone --branch v2024.1.20 https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android || {
                 echo "Cloning python-for-android failed after retry." >&2
                 exit 1
               }
