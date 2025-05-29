@@ -17,30 +17,21 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '11'
 
-      - name: Install JAXB dependencies
+      - name: Download Android SDK Command-line Tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            jaxb \
-            libjaxb-java \
-            maven
-
-      - name: Setup JAXB
-        run: |
-          mkdir -p ~/.m2
-          echo '<?xml version="1.0" encoding="UTF-8"?><settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd"><localRepository>${user.home}/.m2/repository</localRepository></settings>' > ~/.m2/settings.xml
-          mvn dependency:get -Dartifact=javax.xml.bind:jaxb-api:2.3.1
-          mvn dependency:get -Dartifact=org.glassfish.jaxb:jaxb-runtime:2.3.1
+          wget https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip
+          mkdir -p /usr/local/lib/android/sdk/cmdline-tools
+          unzip commandlinetools-linux-6858069_latest.zip
+          mv cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        env:
-          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          JAXB_HOME: /usr/share/java
-          CLASSPATH: /usr/share/java/jaxb-api.jar:/usr/share/java/jaxb-runtime.jar
-          SKIP_JDK_VERSION_CHECK: true
+        run: |
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+          yes | sdkmanager --licenses || true
+          sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
 
       - name: Install dependencies
         run: |
@@ -91,25 +82,12 @@ jobs:
           git checkout develop
           ln -s $(pwd) ~/.buildozer/android/platform/python-for-android
 
-      - name: Accept Android licenses
-        env:
-          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          JAXB_HOME: /usr/share/java
-          CLASSPATH: /usr/share/java/jaxb-api.jar:/usr/share/java/jaxb-runtime.jar
-          SKIP_JDK_VERSION_CHECK: true
-        run: |
-          yes | sdkmanager --licenses || true
-          yes | sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
-
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
-          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
+          JAVA_HOME: /usr/lib/jvm/temurin-11-jdk-amd64
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
-          JAXB_HOME: /usr/share/java
-          CLASSPATH: /usr/share/java/jaxb-api.jar:/usr/share/java/jaxb-runtime.jar
-          SKIP_JDK_VERSION_CHECK: true
         run: |
           export PATH=$PATH:~/.local/bin/
           buildozer android debug
