@@ -70,38 +70,39 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
+      - name: Prepare build directories
+        run: |
+          mkdir -p .buildozer/android/platform
+          mkdir -p ~/.buildozer/android/platform
+
       - name: Clone python-for-android
         run: |
-          set -e
-          mkdir -p ~/.buildozer/android/platform
-          git clone https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android
-          cd ~/.buildozer/android/platform/python-for-android
+          git clone https://github.com/kivy/python-for-android.git .buildozer/android/platform/python-for-android
+          cd .buildozer/android/platform/python-for-android
           git checkout develop
+          # Criar um link simbólico para garantir compatibilidade
+          ln -s $(pwd) ~/.buildozer/android/platform/python-for-android
 
       - name: Accept Android licenses
         run: |
           yes | sdkmanager --licenses || true
           yes | sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
 
-      - name: Clean before build
+      - name: Debug directory structure
         run: |
-          rm -rf ~/.buildozer/android/platform/build-*
-          rm -rf ~/.buildozer/android/platform/python-for-android
-          rm -rf ~/.buildozer/android/platform/.build_*
-          rm -rf ~/.buildozer/android/platform/android-ndk-*
-          rm -rf ~/.buildozer/android/platform/android-sdk
-          rm -rf ~/.buildozer/android/platform/apache-ant-*
-          rm -rf ~/.buildozer/dists
-          rm -rf .buildozer
-          rm -rf bin
+          echo "Current directory structure:"
+          ls -la
+          echo "Buildozer android platform directory:"
+          ls -la .buildozer/android/platform
+          echo "Home buildozer android platform directory:"
+          ls -la ~/.buildozer/android/platform
 
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
         run: |
           export PATH=$PATH:~/.local/bin/
-          buildozer android clean
-          buildozer -v android debug
+          buildozer android debug
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
