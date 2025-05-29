@@ -17,10 +17,19 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
+
+      - name: Install JAXB dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            jaxb \
+            libjaxb-java
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '12.0'
 
       - name: Install dependencies
         run: |
@@ -57,8 +66,7 @@ jobs:
             pkg-config \
             libltdl-dev \
             libffi-dev \
-            libssl-dev \
-            default-jdk
+            libssl-dev
 
       - name: Prepare build directories
         run: |
@@ -73,6 +81,8 @@ jobs:
           ln -s $(pwd) ~/.buildozer/android/platform/python-for-android
 
       - name: Accept Android licenses
+        env:
+          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
         run: |
           yes | sdkmanager --licenses || true
           yes | sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
@@ -86,7 +96,7 @@ jobs:
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
-          JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
         run: |
