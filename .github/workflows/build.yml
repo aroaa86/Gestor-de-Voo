@@ -61,9 +61,22 @@ jobs:
 
       - name: Clone and Install python-for-android
         run: |
+          mkdir -p ~/.buildozer/android/platform
           git clone https://github.com/kivy/python-for-android.git ~/.buildozer/android/platform/python-for-android
           cd ~/.buildozer/android/platform/python-for-android
           python setup.py install
+
+      - name: Debug Directory Setup
+        run: |
+          ls -la ~/.buildozer/android/platform/
+          ls -la ~/.buildozer/android/platform/python-for-android
+
+      - name: Validate python-for-android Installation
+        run: |
+          if [ ! -d ~/.buildozer/android/platform/python-for-android ]; then
+            echo "python-for-android directory does not exist!" >&2
+            exit 1
+          fi
 
       - name: Accept Android licenses
         run: |
@@ -75,11 +88,6 @@ jobs:
           rm -rf ~/.buildozer/dists
           rm -rf .buildozer/dists
           rm -rf bin
-
-      - name: Debug Directory Setup
-        run: |
-          ls -la ~/.buildozer/android/platform/
-          ls -la ~/.buildozer/android/platform/python-for-android
 
       - name: Build with Buildozer
         env:
