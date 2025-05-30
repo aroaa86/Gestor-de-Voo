@@ -37,7 +37,8 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3==3.10.13,kivy==2.2.1,pillow,sqlite3
+# Modifique a linha de requirements para:
+requirements = python3,kivy==2.2.1,pillow,sqlite3
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -195,7 +196,7 @@ android.add_aars = ~/.buildozer/android/platform/build-*/dists/*/build/outputs/a
 # android.add_resources = my_icons/all-inclusive.png:drawable/all_inclusive.png
 # 2) A directory, here  'legal_icons' must contain resources of one kind
 # android.add_resources = legal_icons:drawable
-# 3) A directory, here 'legal_resources' must contain one or more directories, 
+# 3) A directory, here 'legal_resources' must contain one or more directories,
 # each of a resource kind:  drawable, xml, etc...
 # android.add_resources = legal_resources
 #android.add_resources =
@@ -214,14 +215,14 @@ android.enable_androidx = True
 android.add_compile_options = -03
 
 # (list) Gradle repositories to add {can be necessary for some android.gradle_dependencies}
-# please enclose in double quotes 
+# please enclose in double quotes
 # e.g. android.gradle_repositories = "maven { url 'https://kotlin.bintray.com/ktor' }"
 #android.add_gradle_repositories =
 
-# (list) packaging options to add 
+# (list) packaging options to add
 # see https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.PackagingOptions.html
 # can be necessary to solve conflicts in gradle_dependencies
-# please enclose in double quotes 
+# please enclose in double quotes
 # e.g. android.add_packaging_options = "exclude 'META-INF/common.kotlin_module'", "exclude 'META-INF/*.kotlin_module'"
 android.add_packaging_options = "exclude 'META-INF/services/javax.annotation.processing.Processor'", "exclude 'META-INF/*.version'"
 
@@ -315,6 +316,7 @@ android.debug = True
 #
 # Python for android (p4a) specific
 #
+p4a.host_python = python3.11
 
 # (str) python-for-android URL to use for checkout
 p4a.url = https://github.com/kivy/python-for-android.git
@@ -329,7 +331,7 @@ p4a.branch = develop
 #p4a.commit = HEAD
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-#bp4a.source_dir = 
+#bp4a.source_dir =
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
 #p4a.local_recipes =
@@ -407,7 +409,7 @@ ios.codesign.allowed = false
 log_level = 2
 
 # (int) Display warning if buildozer is run as root (0 = False, 1 = True)
-warn_on_root = 1
+warn_on_root = 0
 
 # (str) Path to build artifact storage, absolute or relative to spec file
 # build_dir = ./.buildozer
