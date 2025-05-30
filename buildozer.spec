@@ -41,7 +41,7 @@ version = 0.1
 # Modifique a linha de requirements
 
 # (list) Application requirements
-requirements = python3==3.9.17,hostpython3==3.9.17,kivy==2.2.1,pillow,sqlite3,android,tomli==2.0.1,build==1.0.3
+requirements = python3==3.11.0,kivy==2.2.1,pillow,sqlite3,android
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -309,7 +309,7 @@ android.allow_backup = True
 # android.no-byte-compile-python = False
 
 # (str) The format used to package the app for release mode (aab or apk or aar).
-# android.release_artifact = aab
+android.release_artifact = apk
 
 # (str) The format used to package the app for debug mode (apk or aar).
 # android.debug_artifact = apk
@@ -328,7 +328,7 @@ p4a.url = https://github.com/kivy/python-for-android.git
 p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-p4a.branch = develop
+p4a.branch = master
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
 #p4a.commit = HEAD
