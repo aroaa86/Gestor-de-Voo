@@ -39,7 +39,7 @@ version = 0.1
 # comma separated e.g. requirements = sqlite3,kivy
 # Modifique a linha de requirements para:
 # Modifique a linha de requirements
-requirements = python3==3.9.17,hostpython3==3.9.17,kivy==2.2.1,pillow,sqlite3,android
+requirements = python3==3.9.17,hostpython3==3.9.17,kivy==2.2.1,pillow,sqlite3,android,buildozer
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -335,7 +335,7 @@ p4a.branch = develop
 #bp4a.source_dir =
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
-#p4a.local_recipes =
+p4a.local_recipes = .buildozer/android/platform/python-for-android/recipes
 
 # (str) Filename to the hook for p4a
 #p4a.hook =
