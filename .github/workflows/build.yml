@@ -20,14 +20,6 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Install Git
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git
-          git --version
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-
       - name: Cache Python dependencies
         uses: actions/cache@v4
         with:
@@ -53,6 +45,7 @@ jobs:
             build-essential \
             python3 \
             python3-dev \
+            git \
             ffmpeg \
             libsdl2-dev \
             libsdl2-image-dev \
@@ -83,24 +76,33 @@ jobs:
 
       - name: Set up Android SDK
         run: |
-          mkdir -p ${ANDROID_HOME}/cmdline-tools
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip -q commandlinetools-linux-9477386_latest.zip -d ${ANDROID_HOME}/cmdline-tools
-          mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest
-          rm commandlinetools-linux-9477386_latest.zip
-          echo "ANDROID_HOME=${ANDROID_HOME}" >> $GITHUB_ENV
-          echo "PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools" >> $GITHUB_ENV
-      
+          sudo mkdir -p /usr/local/lib/android/sdk/cmdline-tools
+          cd /usr/local/lib/android/sdk/cmdline-tools
+          sudo wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          sudo unzip -q commandlinetools-linux-9477386_latest.zip
+          sudo mv cmdline-tools latest
+          sudo rm commandlinetools-linux-9477386_latest.zip
+          sudo chmod -R 777 /usr/local/lib/android/sdk
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "PATH=$PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_ENV
+
       - name: Install Android SDK packages
         run: |
-          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null
-          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --update
-          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager \
+          yes | sudo /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null
+          sudo /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --update
+          sudo /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager \
             "platform-tools" \
             "platforms;android-33" \
             "build-tools;33.0.0" \
             "ndk;25.2.9519653" \
+            "tools" \
             "cmake;3.22.1"
+
+      - name: Create SDK Directory Structure
+        run: |
+          sudo mkdir -p /usr/local/lib/android/sdk/tools/bin
+          sudo ln -sf /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager
+          sudo chmod -R 777 /usr/local/lib/android/sdk
 
       - name: Cache Buildozer global directory
         uses: actions/cache@v4
@@ -117,21 +119,15 @@ jobs:
           mkdir -p .buildozer
           mkdir -p bin
 
-      - name: Update buildozer.spec
-        run: |
-          echo "android.sdk_path = ${ANDROID_HOME}" >> buildozer.spec
-          echo "android.ndk_path = ${ANDROID_HOME}/ndk/25.2.9519653" >> buildozer.spec
-
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          PATH: ${{ env.PATH }}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:~/.local/bin/
-          PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
+          PATH: ${{ env.PATH }}:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/tools/bin:~/.local/bin/
         run: |
-          ls -la ${ANDROID_HOME}/cmdline-tools/latest/bin/
           python -m buildozer android debug
 
       - name: Upload APK
@@ -142,11 +138,6 @@ jobs:
           path: bin/*.apk
           if-no-files-found: error
           retention-days: 90
-
-      - name: Validate SDK tools
-        run: |
-          ls -la ${ANDROID_HOME}/cmdline-tools/latest/bin/
-          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --version
 
       - name: Upload Build Logs
         if: always()
