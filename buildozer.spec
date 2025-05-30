@@ -161,7 +161,7 @@ android.accept_sdk_license = True
 # android.apptheme = "@android:style/Theme.NoTitleBar"
 
 # (list) Pattern to whitelist for the whole project
-#android.whitelist =
+android.whitelist = lib-dynload/_csv.so,lib-dynload/_json.so,lib-dynload/_sqlite3.so,lib-dynload/math.so
 
 # (str) Path to a custom whitelist file
 #android.whitelist_src =
@@ -201,7 +201,7 @@ android.add_aars = ~/.buildozer/android/platform/build-*/dists/*/build/outputs/a
 #android.add_resources =
 
 # (list) Gradle dependencies to add
-android.gradle_dependencies = "androidx.core:core:1.6.0", "androidx.fragment:fragment:1.3.6", "androidx.lifecycle:lifecycle-runtime:2.3.1"
+android.gradle_dependencies = org.xerial:sqlite-jdbc:3.36.0
 
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.
@@ -211,7 +211,7 @@ android.enable_androidx = True
 # (list) add java compile options
 # this can for example be necessary when importing certain java libraries using the 'android.gradle_dependencies' option
 # see https://developer.android.com/studio/write/java8-support for further information
-android.add_compile_options = "sourceCompatibility = 1.8", "targetCompatibility = 1.8"
+android.add_compile_options = -03
 
 # (list) Gradle repositories to add {can be necessary for some android.gradle_dependencies}
 # please enclose in double quotes 
@@ -323,7 +323,7 @@ p4a.url = https://github.com/kivy/python-for-android.git
 p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-p4a.branch = develop
+p4a.branch = master
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
 #p4a.commit = HEAD
