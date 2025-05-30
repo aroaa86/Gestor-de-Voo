@@ -19,6 +19,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      # Instalar Git primeiro
+      - name: Install Git
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git
+
+      - name: Configure Git
+        run: |
+          git --version
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
       
       - name: Cache Python dependencies
         uses: actions/cache@v4
@@ -43,7 +55,6 @@ jobs:
           sudo apt-get install -y \
             python3-pip \
             build-essential \
-            git \
             python3 \
             python3-dev \
             ffmpeg \
