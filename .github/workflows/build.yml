@@ -47,9 +47,10 @@ jobs:
             libavformat-dev \
             libavcodec-dev \
             zlib1g-dev
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --upgrade Cython==0.29.33
-          python3 -m pip install --upgrade buildozer
+          python -m pip install --upgrade pip
+          pip install tomli
+          pip install buildozer
+          pip install --upgrade Cython==0.29.33
           
       - name: Install system dependencies
         run: |
