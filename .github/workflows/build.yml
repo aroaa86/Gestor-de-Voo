@@ -7,21 +7,21 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
       
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       
       - name: Cache Python dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -75,7 +75,7 @@ jobs:
           echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
           
       - name: Cache Buildozer global directory
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.buildozer
           key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
@@ -108,24 +108,27 @@ jobs:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          PATH: $PATH:~/.local/bin/
-          PYTHONPATH: $PYTHONPATH:$PWD
+          PATH: ${{ env.PATH }}:~/.local/bin/
+          PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
         run: |
           python -m buildozer android debug
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: bin/*.apk
           if-no-files-found: error
+          retention-days: 90
 
-      - name: Upload build logs on failure
+      - name: Upload Logs (if build fails)
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: buildozer-logs
           path: |
             .buildozer/android/platform/build-*/build/other_builds/*/android/*/build/outputs/logs/*
             .buildozer/android/platform/build-*/build/other_builds/*/android/*/build/outputs/apk/debug/*
             .buildozer/android/app/buildozer.log
+          retention-days: 30
