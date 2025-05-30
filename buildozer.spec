@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.2.1,pillow,sqlite3
+requirements = python3,kivy==2.2.1,pillow,sqlite3,hostpython3==3.9.17,libffi,openssl
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -201,7 +201,7 @@ android.accept_sdk_license = True
 #android.add_resources =
 
 # (list) Gradle dependencies to add
-#android.gradle_dependencies =
+android.gradle_dependencies = "androidx.core:core:1.6.0", "androidx.fragment:fragment:1.3.6", "androidx.lifecycle:lifecycle-runtime:2.3.1"
 
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.
