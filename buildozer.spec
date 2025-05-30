@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.2.1,pillow,sqlite3,hostpython3==3.11.5,libffi,openssl
+requirements = python3,kivy==2.2.1,pillow,sqlite3,hostpython3==3.11.12,libffi,openssl,android,sdl2_ttf==2.0.15
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -139,7 +139,7 @@ android.skip_update = False
 android.accept_sdk_license = True
 
 # (str) Android entry point, default is ok for Kivy-based app
-#android.entrypoint = org.kivy.android.PythonActivity
+android.entrypoint = org.kivy.android.PythonActivity
 
 # (str) Full name including package path of the Java class that implements Android Activity
 # use that parameter together with android.entrypoint to set custom Java class instead of PythonActivity
@@ -201,7 +201,7 @@ android.add_aars = ~/.buildozer/android/platform/build-*/dists/*/build/outputs/a
 #android.add_resources =
 
 # (list) Gradle dependencies to add
-android.gradle_dependencies = org.xerial:sqlite-jdbc:3.36.0
+android.gradle_dependencies = 'org.xerial:sqlite-jdbc:3.36.0'
 
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.
@@ -223,7 +223,7 @@ android.add_compile_options = -03
 # can be necessary to solve conflicts in gradle_dependencies
 # please enclose in double quotes 
 # e.g. android.add_packaging_options = "exclude 'META-INF/common.kotlin_module'", "exclude 'META-INF/*.kotlin_module'"
-#android.add_packaging_options =
+android.add_packaging_options = "exclude 'META-INF/services/javax.annotation.processing.Processor'", "exclude 'META-INF/*.version'"
 
 # (list) Java classes to add as activities to the manifest.
 #android.add_activities = com.example.ExampleActivity
