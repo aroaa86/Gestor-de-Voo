@@ -90,7 +90,7 @@ jobs:
           rm commandlinetools-linux-9477386_latest.zip
           echo "ANDROID_HOME=${ANDROID_HOME}" >> $GITHUB_ENV
           echo "PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools" >> $GITHUB_ENV
-
+      
       - name: Install Android SDK packages
         run: |
           yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null
@@ -142,6 +142,11 @@ jobs:
           path: bin/*.apk
           if-no-files-found: error
           retention-days: 90
+
+      - name: Validate SDK tools
+        run: |
+          ls -la ${ANDROID_HOME}/cmdline-tools/latest/bin/
+          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --version
 
       - name: Upload Build Logs
         if: always()
