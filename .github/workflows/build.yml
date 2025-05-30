@@ -1,45 +1,32 @@
 name: Build
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build-android:
+    name: Build Android APK
     runs-on: ubuntu-latest
-
+    
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
+      - uses: actions/checkout@v3
+      
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
-
-      - name: Download and Setup Android Command Line Tools
-        run: |
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          sudo mkdir -p /usr/local/lib/android/sdk/cmdline-tools
-          sudo unzip -q commandlinetools-linux-9477386_latest.zip -d /usr/local/lib/android/sdk/cmdline-tools/
-          sudo mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
-          sudo mkdir -p /usr/local/lib/android/sdk/tools/bin
-          sudo ln -s /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager
-          sudo chown -R $USER:$USER /usr/local/lib/android/sdk
-          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_ENV
-
-      - name: Setup Android SDK
-        run: |
-          yes | sdkmanager --sdk_root=/usr/local/lib/android/sdk --licenses || true
-          sdkmanager --sdk_root=/usr/local/lib/android/sdk \
-            "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.0" \
-            "ndk;25.2.9519653" \
-            "cmake;3.22.1"
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -79,50 +66,66 @@ jobs:
             libltdl-dev \
             libffi-dev \
             libssl-dev \
-            python3-setuptools \
-            python3-venv
-            
-      - name: Prepare build directories
-        run: |
-          mkdir -p .buildozer/android/platform
-          mkdir -p ~/.buildozer/android/platform
+            ccache \
+            cmake
 
-      - name: Clone python-for-android
+      - name: Configure ccache
         run: |
-          git clone https://github.com/kivy/python-for-android.git .buildozer/android/platform/python-for-android
-          cd .buildozer/android/platform/python-for-android
-          git checkout develop
-          ln -s $(pwd) ~/.buildozer/android/platform/python-for-android
+          sudo /usr/sbin/update-ccache-symlinks
+          echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
+          
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v3
+        with:
+          path: ~/.buildozer
+          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
-      - name: Update buildozer.spec
+      - name: Clean and prepare environment
         run: |
-          sed -i 's/log_level = .*/log_level = 2/' buildozer.spec
-          sed -i 's/# android.sdk_path =.*/android.sdk_path = \/usr\/local\/lib\/android\/sdk/' buildozer.spec
-          sed -i 's/# android.ndk_path =.*/android.ndk_path = \/usr\/local\/lib\/android\/sdk\/ndk\/25.2.9519653/' buildozer.spec
+          rm -rf ~/.buildozer
+          rm -rf .buildozer
+          rm -rf bin
+          export PATH=$PATH:~/.local/bin/
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
+
+      - name: Download Android SDK Command-line tools
+        run: |
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip commandlinetools-linux-9477386_latest.zip -d $ANDROID_HOME/cmdline-tools
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          rm commandlinetools-linux-9477386_latest.zip
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
 
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
-          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
           ANDROID_HOME: /usr/local/lib/android/sdk
-          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
+          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
+          PATH: $PATH:~/.local/bin/
+          PYTHONPATH: $PYTHONPATH:$PWD
         run: |
-          export PATH=$PATH:~/.local/bin/
-          buildozer android debug
+          python -m buildozer android debug
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: package
+          name: app-debug
           path: bin/*.apk
           if-no-files-found: error
 
       - name: Upload build logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: buildozer-logs
           path: |
-            .buildozer/logs/*
-            ~/.buildozer/logs/*
+            .buildozer/android/platform/build-*/build/other_builds/*/android/*/build/outputs/logs/*
+            .buildozer/android/platform/build-*/build/other_builds/*/android/*/build/outputs/apk/debug/*
+            .buildozer/android/app/buildozer.log
