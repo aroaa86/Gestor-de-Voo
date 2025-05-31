@@ -41,7 +41,7 @@ version = 0.1
 # Modifique a linha de requirements
 
 # (list) Application requirements
-requirements = python3==3.11.0,kivy==2.2.1,pillow,sqlite3,android
+requirements = python3==3.9.17,kivy==2.2.1,pillow,sqlite3,android,pyjnius==1.4.2
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -211,6 +211,9 @@ android.gradle_dependencies = 'org.xerial:sqlite-jdbc:3.36.0'
 # contains an 'androidx' package, or any package from Kotlin source.
 # android.enable_androidx requires android.api >= 28
 android.enable_androidx = True
+
+android.prebuild_recipes = python3,pyjnius
+android.clear_cache = True
 
 # (list) add java compile options
 # this can for example be necessary when importing certain java libraries using the 'android.gradle_dependencies' option
