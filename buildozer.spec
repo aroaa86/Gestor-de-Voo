@@ -43,6 +43,7 @@ version = 0.1
 # (list) Application requirements
 requirements = python3==3.9.17,kivy==2.2.1,pillow,sqlite3,android,pyjnius==1.4.2,-grp,-_crypt,cython
 cython jnius/jnius.pyx
+pyjnius>=1.5.0
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
