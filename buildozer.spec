@@ -41,7 +41,7 @@ version = 0.1
 # Modifique a linha de requirements
 
 # (list) Application requirements
-requirements = python3==3.9.17,kivy==2.2.1,pillow,sqlite3,android,pyjnius==1.4.2
+requirements = python3==3.9.17,kivy==2.2.1,pillow,sqlite3,android,pyjnius==1.4.2,-grp,-_crypt,cython
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -410,6 +410,8 @@ ios.codesign.allowed = false
 
 
 [buildozer]
+
+buildozer android debug
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
 log_level = 2
