@@ -28,6 +28,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
       
       - name: Cache Python dependencies
         uses: actions/cache@v4
@@ -60,6 +65,7 @@ jobs:
           pip install tomli
           pip install buildozer
           pip install --upgrade Cython
+          python3.9 -m pip install docwriter
           
       - name: Install system dependencies
         run: |
@@ -92,6 +98,12 @@ jobs:
             libssl-dev \
             ccache \
             cmake
+
+      - name: Set environment variables
+        run: |
+          export ANDROIDNDK=/usr/local/lib/android/sdk/ndk/25.2.9519653
+          export ANDROIDAPI=33
+          export ANDROIDMINAPI=21
 
       - name: Configure ccache
         run: |
