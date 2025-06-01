@@ -41,7 +41,7 @@ version = 0.1
 # Modifique a linha de requirements
 
 # (list) Application requirements
-requirements = python3==3.9.17,kivy==2.2.1,pillow,sqlite3,android,pyjnius==1.4.2,-grp,-_crypt,cython
+requirements = python3==3.9.17,kivy==2.2.1,pillow,sqlite3,android,pyjnius,cython
 cython jnius/jnius.pyx
 pyjnius>=1.5.0
 
