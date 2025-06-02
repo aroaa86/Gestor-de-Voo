@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Checkout code
       - uses: actions/checkout@v4
 
       - name: Clean build directories
@@ -61,11 +62,17 @@ jobs:
             libavformat-dev \
             libavcodec-dev \
             zlib1g-dev
+          sudo apt-get update && sudo apt-get install -y libcrypt-dev libnsl-dev
+          pip install --upgrade buildozer cython
           python -m pip install --upgrade pip
           pip install tomli
           pip install buildozer
           pip install --upgrade Cython
           python3.9 -m pip install docwriter
+
+      - name: Generate Cython files
+        run: |
+          cythonize -i jnius/jnius.pyx
           
       - name: Install system dependencies
         run: |
@@ -166,7 +173,7 @@ jobs:
           CFLAGS: -D__GNUC_PREREQ=1
           CPPFLAGS: -D__GNUC_PREREQ=1
         run: |
-          python -m buildozer android debug
+          buildozer android debug
 
       - name: Upload APK
         if: success()
