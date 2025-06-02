@@ -1,13 +1,10 @@
 name: Build
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:latest
-      options: --privileged
 
     steps:
       - uses: actions/checkout@v4
@@ -50,6 +47,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          export PIP_CACHE_DIR=/tmp/.cache/pip
           apt-get update
           apt-get install -y git
           python -m pip install --upgrade pip
@@ -90,6 +88,12 @@ jobs:
             ccache \
             cmake
 
+      - name: Fix pip permissions
+        run: |
+          python3 -m pip install --upgrade pip setuptools wheel
+          mkdir -p /root/.cache/pip
+          chmod 777 /root/.cache/pip
+
       - name: Configure ccache
         run: |
           sudo /usr/sbin/update-ccache-symlinks
@@ -123,6 +127,17 @@ jobs:
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
 
+      - name: Install Buildozer
+        run: |
+          python3 -m pip install --upgrade Cython==0.29.33
+          python3 -m pip install --upgrade buildozer
+        
+      - name: Set up Android SDK & NDK
+        run: |
+          mkdir -p /root/.buildozer
+          chmod 777 /root/.buildozer
+          export PATH=$PATH:~/.local/bin/
+
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
@@ -132,6 +147,7 @@ jobs:
           PATH: ${{ env.PATH }}:~/.local/bin/
           PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
         run: |
+          export PATH=$PATH:~/.local/bin/
           python -m buildozer android debug
 
       - name: Upload APK
