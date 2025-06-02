@@ -5,31 +5,36 @@ jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout code
       - uses: actions/checkout@v4
 
-      - name: Clean build directories
+      # Install Git as early as possible
+      - name: Install Git
         run: |
-          rm -rf ~/.buildozer
-          rm -rf .buildozer
-          rm -rf bin
-          mkdir -p ~/.buildozer
-          mkdir -p .buildozer
-          mkdir -p bin
-      
+          sudo apt-get update
+          sudo apt-get install -y git
+
+      - name: Verify Git Installation
+        run: git --version
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
+      - name: Configure Git
+        run: |
+          git --version
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
       - name: Cache Python dependencies
         uses: actions/cache@v4
         with:
@@ -40,35 +45,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            python3-pip \
-            build-essential \
-            git \
-            python3 \
-            python3-dev \
-            libffi-dev \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixer-dev \
-            libsdl2-ttf-dev \
-            libportmidi-dev \
-            libswscale-dev \
-            libavformat-dev \
-            libavcodec-dev \
-            zlib1g-dev
-          sudo apt-get update && sudo apt-get install -y libcrypt-dev libnsl-dev
-          pip install --upgrade buildozer cython
           python -m pip install --upgrade pip
-          pip install tomli
-          pip install buildozer
-          pip install --upgrade Cython
-          python3.9 -m pip install docwriter
+          pip install --upgrade Cython==0.29.33
+          pip install --upgrade buildozer==1.5.0
+          pip install --upgrade virtualenv
+          pip install --upgrade wheel
+          pip install --upgrade setuptools
 
-      - name: Generate Cython files
-        run: |
-          cythonize -i jnius/jnius.pyx
-          
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -77,7 +60,6 @@ jobs:
             build-essential \
             python3 \
             python3-dev \
-            git \
             ffmpeg \
             libsdl2-dev \
             libsdl2-image-dev \
@@ -101,46 +83,10 @@ jobs:
             ccache \
             cmake
 
-      - name: Set environment variables
-        run: |
-          export ANDROIDNDK=/usr/local/lib/android/sdk/ndk/25.2.9519653
-          export ANDROIDAPI=33
-          export ANDROIDMINAPI=21
-
       - name: Configure ccache
         run: |
           sudo /usr/sbin/update-ccache-symlinks
           echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
-
-      - name: Set up Android SDK
-        run: |
-          sudo mkdir -p /usr/local/lib/android/sdk/cmdline-tools
-          cd /usr/local/lib/android/sdk/cmdline-tools
-          sudo wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          sudo unzip -q commandlinetools-linux-9477386_latest.zip
-          sudo mv cmdline-tools latest
-          sudo rm commandlinetools-linux-9477386_latest.zip
-          sudo chmod -R 777 /usr/local/lib/android/sdk
-          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_ENV
-
-      - name: Install Android SDK packages
-        run: |
-          yes | sudo /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null
-          sudo /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --update
-          sudo /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager \
-            "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.0" \
-            "ndk;25.2.9519653" \
-            "tools" \
-            "cmake;3.22.1"
-
-      - name: Create SDK Directory Structure
-        run: |
-          sudo mkdir -p /usr/local/lib/android/sdk/tools/bin
-          sudo ln -sf /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager
-          sudo chmod -R 777 /usr/local/lib/android/sdk
 
       - name: Cache Buildozer global directory
         uses: actions/cache@v4
@@ -148,25 +94,36 @@ jobs:
           path: ~/.buildozer
           key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
-      - name: Clean build directories
+      - name: Clean and prepare environment
         run: |
           rm -rf ~/.buildozer
           rm -rf .buildozer
           rm -rf bin
-          mkdir -p ~/.buildozer
-          mkdir -p .buildozer
-          mkdir -p bin
+          export PATH=$PATH:~/.local/bin/
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
+
+      - name: Download Android SDK Command-line tools
+        run: |
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip commandlinetools-linux-9477386_latest.zip -d $ANDROID_HOME/cmdline-tools
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          rm commandlinetools-linux-9477386_latest.zip
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
 
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
-          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          PATH: ${{ env.PATH }}:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/tools/bin:~/.local/bin/
-          CFLAGS: -D__GNUC_PREREQ=1
-          CPPFLAGS: -D__GNUC_PREREQ=1
+          PATH: ${{ env.PATH }}:~/.local/bin/
+          PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
         run: |
           python -m buildozer android debug
 
@@ -179,8 +136,8 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Upload Build Logs
-        if: always()
+      - name: Upload Logs (if build fails)
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: buildozer-logs
