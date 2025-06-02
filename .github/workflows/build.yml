@@ -173,7 +173,7 @@ jobs:
           CFLAGS: -D__GNUC_PREREQ=1
           CPPFLAGS: -D__GNUC_PREREQ=1
         run: |
-          buildozer android debug
+          python -m buildozer android debug
 
       - name: Upload APK
         if: success()
