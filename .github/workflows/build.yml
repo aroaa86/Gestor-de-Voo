@@ -114,16 +114,18 @@ jobs:
         with:
           path: ~/.buildozer
           key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer
 
       - name: Clean and prepare environment
         run: |
-          rm -rf ~/.buildozer
-          rm -rf .buildozer
-          rm -rf bin
-          export PATH=$PATH:~/.local/bin/
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
-
+          export PATH=$PATH:~/.local/bin/
+          echo $ANDROID_HOME
+          echo $ANDROID_NDK_HOME
+          echo $PATH
+          
       - name: Download Android SDK Command-line tools
         run: |
           mkdir -p $ANDROID_HOME/cmdline-tools
@@ -147,6 +149,12 @@ jobs:
           mkdir -p $HOME/.buildozer
           chmod 777 $HOME/.buildozer
           export PATH=$PATH:~/.local/bin/
+
+      - name: Debug Buildozer Configuration
+        run: |
+          cat buildozer.spec
+          python -m pip freeze
+          ls -la ~/.buildozer
 
       - name: Build with Buildozer
         env:
