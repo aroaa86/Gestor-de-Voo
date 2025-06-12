@@ -12,8 +12,8 @@ jobs:
       - name: Ensure apt-get is available
         run: |
           if ! command -v apt-get &> /dev/null; then
-            echo "apt-get not found. Installing it..."
-            sudo apt update && sudo apt install -y apt
+            echo "Error: apt-get is not available in the environment."
+            exit 1
           else
             echo "apt-get is available."
           fi
