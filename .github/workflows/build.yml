@@ -7,11 +7,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ensure sudo is installed
+      - uses: actions/checkout@v4
+
+      - name: Fix apt locks (if any)
         run: |
-          apt-get update
-          apt-get install -y sudo
-          
+          sudo rm -f /var/lib/apt/lists/lock
+          sudo rm -f /var/cache/apt/archives/lock
+          sudo rm -f /var/lib/dpkg/lock
+          sudo dpkg --configure -a
+
       # Install Git as early as possible
       - name: Install Git
         run: |
@@ -22,8 +26,6 @@ jobs:
         run: |
           which git
           git --version
-          
-      - uses: actions/checkout@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
