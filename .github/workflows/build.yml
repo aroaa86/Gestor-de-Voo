@@ -148,6 +148,10 @@ jobs:
           PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
         run: |
           export PATH=$PATH:~/.local/bin/
+          sudo apt-get update
+          sudo apt-get install -y git
+          which git
+          git --version
           python -m buildozer android debug
           
       - name: Upload APK
