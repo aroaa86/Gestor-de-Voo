@@ -30,6 +30,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y git
+          command -v git
+          git --version
 
       - name: Verify Git Installation
         run: |
@@ -163,7 +165,8 @@ jobs:
           PATH: ${{ env.PATH }}:~/.local/bin/
           PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
         run: |
-          export PATH=$PATH:~/.local/bin/
+          command -v git
+          git --version
           python -m buildozer android debug
           
       - name: Upload APK
