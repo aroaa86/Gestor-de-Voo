@@ -91,8 +91,8 @@ jobs:
       - name: Fix pip permissions
         run: |
           python3 -m pip install --upgrade pip setuptools wheel
-          mkdir -p /root/.cache/pip
-          chmod 777 /root/.cache/pip
+          mkdir -p $HOME/.cache/pip
+          chmod 777 $HOME/.cache/pip
 
       - name: Configure ccache
         run: |
