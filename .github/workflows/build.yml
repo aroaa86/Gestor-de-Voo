@@ -165,6 +165,7 @@ jobs:
           PATH: ${{ env.PATH }}:~/.local/bin/
           PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
         run: |
+          export PATH=$PATH:$HOME/.local/bin
           command -v git
           git --version
           python -m buildozer android debug
