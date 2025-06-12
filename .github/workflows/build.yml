@@ -9,15 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Ensure apt-get is available
-        run: |
-          if ! command -v apt-get &> /dev/null; then
-            echo "Error: apt-get is not available in the environment."
-            exit 1
-          else
-            echo "apt-get is available."
-          fi
-
       - name: Fix apt locks (if any)
         run: |
           sudo rm -f /var/lib/apt/lists/lock
@@ -28,8 +19,9 @@ jobs:
       # Install Git as early as possible
       - name: Install Git
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git
+          for i in 1 2 3; do
+            sudo apt-get update && sudo apt-get install -y git && break || sleep 10
+          done
           command -v git
           git --version
 
