@@ -164,8 +164,6 @@ jobs:
           PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
         run: |
           export PATH=$PATH:~/.local/bin/
-          which git
-          git --version
           python -m buildozer android debug
           
       - name: Upload APK
