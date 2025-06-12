@@ -134,8 +134,8 @@ jobs:
         
       - name: Set up Android SDK & NDK
         run: |
-          mkdir -p /root/.buildozer
-          chmod 777 /root/.buildozer
+          mkdir -p $HOME/.buildozer
+          chmod 777 $HOME/.buildozer
           export PATH=$PATH:~/.local/bin/
 
       - name: Build with Buildozer
@@ -149,7 +149,7 @@ jobs:
         run: |
           export PATH=$PATH:~/.local/bin/
           python -m buildozer android debug
-
+          
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
