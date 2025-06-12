@@ -9,6 +9,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Ensure apt-get is available
+        run: |
+          if ! command -v apt-get &> /dev/null; then
+            echo "apt-get not found. Installing it..."
+            sudo apt update && sudo apt install -y apt
+          else
+            echo "apt-get is available."
+          fi
+
       - name: Fix apt locks (if any)
         run: |
           sudo rm -f /var/lib/apt/lists/lock
