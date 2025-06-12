@@ -164,6 +164,10 @@ jobs:
           PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
         run: |
           export PATH=$PATH:~/.local/bin/
+          if ! command -v apt-get &> /dev/null; then
+            echo "Error: apt-get is not available in the environment."
+            exit 1
+          fi
           apt-get update
           apt-get install -y git
           which git
