@@ -168,8 +168,6 @@ jobs:
             echo "Error: apt-get is not available in the environment."
             exit 1
           fi
-          apt-get update
-          apt-get install -y git
           which git
           git --version
           python -m buildozer android debug
