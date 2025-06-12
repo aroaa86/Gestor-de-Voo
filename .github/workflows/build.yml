@@ -164,10 +164,6 @@ jobs:
           PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
         run: |
           export PATH=$PATH:~/.local/bin/
-          if ! command -v apt-get &> /dev/null; then
-            echo "Error: apt-get is not available in the environment."
-            exit 1
-          fi
           which git
           git --version
           python -m buildozer android debug
