@@ -22,16 +22,11 @@ jobs:
           sudo apt-get install -y python3-pip
 
       # Install Git as early as possible
-      - name: Install Git
+      - name: Install and Verify Git
         run: |
-          for i in 1 2 3; do
-            sudo apt-get update && sudo apt-get install -y git && break || sleep 10
-          done
-          command -v git
-          git --version
-
-      - name: Verify Git Installation
-        run: |
+          sudo apt-get update
+          sudo apt-get install -y git
+          echo "Git installed:"
           which git
           git --version
 
@@ -98,7 +93,6 @@ jobs:
           command -v dnf || echo "dnf not found"
           command -v pip || echo "pip not found"
 
-
       - name: Fix pip permissions
         run: |
           python3 -m pip install --upgrade pip setuptools wheel
@@ -158,19 +152,27 @@ jobs:
         run: |
           cat buildozer.spec
 
+      - name: Set Buildozer Environment
+        run: |
+          export PATH=/usr/bin:$PATH:~/.local/bin/
+          echo "PATH: $PATH"
+          command -v git
+          git --version
+          
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          PATH: ${{ env.PATH }}:~/.local/bin/
-          PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
+          PATH: /usr/bin:$PATH:~/.local/bin/
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          echo "Git está disponível?"
+          echo "Verifying Git..."
           command -v git
           git --version
-          python -m buildozer android debug --version
+          echo "Starting Buildozer..."
+          buildozer android debug
           
       - name: Upload APK
         if: success()
