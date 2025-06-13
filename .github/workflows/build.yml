@@ -110,6 +110,23 @@ jobs:
             ccache \
             cmake
 
+      - name: Install python3-pip
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+
+      - name: Debug environment
+        run: |
+          echo "ID: $(id)"
+          echo "OS: $(uname -a)"
+          echo "Available package managers:"
+          command -v apt-get || echo "apt-get not found"
+          command -v yum || echo "yum not found"
+          command -v apk || echo "apk not found"
+          command -v dnf || echo "dnf not found"
+          command -v pip || echo "pip not found"
+
+
       - name: Fix pip permissions
         run: |
           python3 -m pip install --upgrade pip setuptools wheel
