@@ -121,25 +121,25 @@ jobs:
           echo $ANDROID_NDK_HOME
           echo $PATH
           
-      - name: Download Android SDK Command-line tools
+      - name: Download and Set Up Android SDK Command-line Tools
         run: |
-           export ANDROID_HOME=/usr/local/lib/android/sdk
-           mkdir -p $ANDROID_HOME/cmdline-tools
-           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-           unzip commandlinetools-linux-9477386_latest.zip -d $ANDROID_HOME/cmdline-tools
-           mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
-           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-           echo "sdkmanager path: $(command -v sdkmanager)"
-           rm commandlinetools-linux-9477386_latest.zip
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip commandlinetools-linux-9477386_latest.zip -d $ANDROID_HOME/cmdline-tools
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          rm commandlinetools-linux-9477386_latest.zip
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          echo "sdkmanager path: $(command -v sdkmanager)"
           
-      - name: Accept Android SDK licenses
+      - name: Accept Android SDK Licenses and Install Tools
         run: |
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           yes | sdkmanager --licenses
           sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
-
-      - name: Verify sdkmanager installation
+          
+      - name: Verify sdkmanager Installation
         run: |
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
