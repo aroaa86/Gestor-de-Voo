@@ -70,7 +70,19 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
+          sudo apt-get install -y git python3-pip build-essential python3-dev \
+            ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev \
+            libgstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+            autoconf automake libtool pkg-config libltdl-dev libffi-dev libssl-dev \
+            ccache cmake unzip wget
+
+          python3 -m pip install --upgrade pip
+          pip install --upgrade Cython==0.29.33 buildozer virtualenv wheel setuptools
+
+          echo "Verificando git..."
+          command -v git
+          git --version
             python3-pip \
             build-essential \
             python3 \
@@ -101,8 +113,8 @@ jobs:
       - name: Fix pip permissions
         run: |
           python3 -m pip install --upgrade pip setuptools wheel
-          mkdir -p $HOME/.cache/pip
-          chmod 777 $HOME/.cache/pip
+          mkdir -p ~/.cache/pip ~/.buildozer
+          chmod -R 777 ~/.cache/pip ~/.buildozer
 
       - name: Configure ccache
         run: |
@@ -128,6 +140,7 @@ jobs:
           
       - name: Download Android SDK Command-line tools
         run: |
+          export ANDROID_HOME=/usr/local/lib/android/sdk
           mkdir -p $ANDROID_HOME/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
           unzip commandlinetools-linux-9477386_latest.zip -d $ANDROID_HOME/cmdline-tools
@@ -138,11 +151,13 @@ jobs:
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
+          export ANDROID_HOME=/usr/local/lib/android/sdk
 
       - name: Install Buildozer
         run: |
-          python3 -m pip install --upgrade Cython==0.29.33
-          python3 -m pip install --upgrade buildozer
+          sudo apt-get update
+          sudo apt-get install -y zlib1g-dev libncurses5-dev libffi-dev libssl-dev
+          python3 -m pip install --upgrade Cython==0.29.33 buildozer==1.5.0
         
       - name: Set up Android SDK & NDK
         run: |
@@ -153,8 +168,6 @@ jobs:
       - name: Debug Buildozer Configuration
         run: |
           cat buildozer.spec
-          python -m pip freeze
-          ls -la ~/.buildozer
 
       - name: Build with Buildozer
         env:
@@ -165,10 +178,10 @@ jobs:
           PATH: ${{ env.PATH }}:~/.local/bin/
           PYTHONPATH: ${{ env.PYTHONPATH }}:${{ github.workspace }}
         run: |
-          export PATH=$PATH:$HOME/.local/bin
+          echo "Git está disponível?"
           command -v git
           git --version
-          python -m buildozer android debug
+          python -m buildozer android debug --version
           
       - name: Upload APK
         if: success()
