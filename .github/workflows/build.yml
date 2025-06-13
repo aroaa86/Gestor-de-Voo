@@ -123,13 +123,14 @@ jobs:
           
       - name: Download Android SDK Command-line tools
         run: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip commandlinetools-linux-9477386_latest.zip -d $ANDROID_HOME/cmdline-tools
-          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          rm commandlinetools-linux-9477386_latest.zip
+           export ANDROID_HOME=/usr/local/lib/android/sdk
+           mkdir -p $ANDROID_HOME/cmdline-tools
+           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+           unzip commandlinetools-linux-9477386_latest.zip -d $ANDROID_HOME/cmdline-tools
+           mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+           echo "sdkmanager path: $(command -v sdkmanager)"
+           rm commandlinetools-linux-9477386_latest.zip
           
       - name: Accept Android SDK licenses
         run: |
@@ -140,6 +141,8 @@ jobs:
 
       - name: Verify sdkmanager installation
         run: |
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           command -v sdkmanager || echo "sdkmanager not found"
           
       - name: Install Buildozer
