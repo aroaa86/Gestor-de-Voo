@@ -128,6 +128,7 @@ jobs:
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
           unzip commandlinetools-linux-9477386_latest.zip -d $ANDROID_HOME/cmdline-tools
           mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          export PATH=$PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin
           rm commandlinetools-linux-9477386_latest.zip
 
       - name: Accept Android SDK licenses
