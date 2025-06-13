@@ -114,12 +114,14 @@ jobs:
 
       - name: Clean and prepare environment
         run: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
+          echo 'export ANDROID_HOME=/usr/local/lib/android/sdk' >> ~/.bashrc
+          echo 'export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH' >> ~/.bashrc
           export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
           export PATH=$PATH:~/.local/bin/
           echo $ANDROID_HOME
           echo $ANDROID_NDK_HOME
           echo $PATH
+          source ~/.bashrc
           
       - name: Download and Set Up Android SDK Command-line Tools
         run: |
@@ -142,6 +144,7 @@ jobs:
       - name: Verify sdkmanager Installation
         run: |
           export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           command -v sdkmanager || echo "sdkmanager not found"
           
