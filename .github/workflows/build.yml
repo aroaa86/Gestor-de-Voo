@@ -16,6 +16,11 @@ jobs:
           sudo rm -f /var/lib/dpkg/lock
           sudo dpkg --configure -a
 
+      - name: Ensure python3-pip is installed
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+
       # Install Git as early as possible
       - name: Install Git
         run: |
