@@ -146,7 +146,6 @@ jobs:
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          command -v sdkmanager || echo "sdkmanager not found"
           
       - name: Install Buildozer
         run: |
@@ -174,6 +173,12 @@ jobs:
       - name: Check Network Connectivity
         run: |
           ping -c 4 google.com || echo "Network is unreachable"
+
+      - name: Fix Permissions for Buildozer
+        run: |
+          mkdir -p ~/.buildozer
+          chmod -R 777 ~/.buildozer
+          echo "Buildozer environment fixed"
           
       - name: Build with Buildozer
         env:
@@ -192,12 +197,6 @@ jobs:
             buildozer android debug && break || echo "Retrying Buildozer... ($i/3)"
             sleep 5
           done
-
-      - name: Fix Permissions for Buildozer
-        run: |
-          mkdir -p ~/.buildozer
-          chmod -R 777 ~/.buildozer
-          echo "Buildozer environment fixed"
           
       - name: Upload APK
         if: success()
