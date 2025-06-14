@@ -133,6 +133,21 @@ jobs:
           rm commandlinetools-linux-9477386_latest.zip
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           echo "sdkmanager path: $(command -v sdkmanager)"
+
+      - name: Set up Android SDK environment variables
+        run: |
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "PATH=$PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_ENV
+
+      - name: Check sdkmanager install
+        run: |
+          which sdkmanager
+          ls -al /usr/local/lib/android/sdk/cmdline-tools/latest/bin/
+
+      - name: Ensure sdkmanager is executable
+        run: |
+          chmod +x /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager
           
       - name: Accept Android SDK Licenses and Install Tools
         run: |
@@ -197,6 +212,10 @@ jobs:
             buildozer android debug && break || echo "Retrying Buildozer... ($i/3)"
             sleep 5
           done
+
+      - name: Verify APK Output
+        run: |
+          ls -al bin/
           
       - name: Upload APK
         if: success()
@@ -206,10 +225,6 @@ jobs:
           path: .buildozer/android/platform/build-*/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 90
-
-      - name: Verify APK Output
-        run: |
-          ls -al bin/
 
       - name: Upload Logs (if build fails)
         if: failure()
