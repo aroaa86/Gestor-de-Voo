@@ -134,16 +134,16 @@ jobs:
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           echo "sdkmanager path: $(command -v sdkmanager)"
 
+      - name: Validate sdkmanager Path
+        run: |
+          ls -al $ANDROID_HOME/cmdline-tools/latest/bin/
+          command -v sdkmanager
+
       - name: Set up Android SDK environment variables
         run: |
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
           echo "ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
           echo "PATH=$PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_ENV
-
-      - name: Check sdkmanager install
-        run: |
-          which sdkmanager
-          ls -al /usr/local/lib/android/sdk/cmdline-tools/latest/bin/
 
       - name: Ensure sdkmanager is executable
         run: |
