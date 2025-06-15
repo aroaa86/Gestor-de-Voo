@@ -134,11 +134,6 @@ jobs:
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           echo "sdkmanager path: $(command -v sdkmanager)"
 
-      - name: Validate sdkmanager Path
-        run: |
-          ls -al $ANDROID_HOME/cmdline-tools/latest/bin/
-          command -v sdkmanager
-
       - name: Set up Android SDK environment variables
         run: |
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
