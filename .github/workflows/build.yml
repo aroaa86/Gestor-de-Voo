@@ -261,8 +261,12 @@ jobs:
       - name: Patch and install custom p4a
         run: |
           git clone https://github.com/kivy/python-for-android.git p4a
-          sed -i '/run_shell("make"/s/$/\, env_update={\"SHELL\":\"\/bin\/bash\",\"MAKEFLAGS\":\"-j1\"}/' \
-            p4a/pythonforandroid/recipes/python3/hostpython3/build.py
+          TARGET_FILE="p4a/pythonforandroid/recipes/python3/hostpython3/build.py"
+          if [ -f "$TARGET_FILE" ]; then
+            sed -i '/run_shell("make"/s/$/\, env_update={"SHELL":"\/bin\/bash","MAKEFLAGS":"-j1"}/' $TARGET_FILE
+          else
+            echo "Warning: $TARGET_FILE not found, skipping patch."
+          fi
           python3 -m pip install -e p4a
           
       - name: Build with Buildozer
