@@ -176,7 +176,11 @@ jobs:
         run: |
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          yes | sdkmanager --licenses
+          echo "Ensuring sdkmanager is executable..."
+          sudo chmod +x $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
+          echo "Accepting licenses..."
+          yes | sdkmanager --licenses || echo "Licenses already accepted or failed to accept"
+          echo "Installing required Android SDK components..."
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
           
       - name: Verify sdkmanager Installation
