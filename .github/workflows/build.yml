@@ -224,6 +224,8 @@ jobs:
           
       - name: Build with Buildozer
         env:
+          SHELL: /bin/bash
+          MAKEFLAGS: -j1
           BUILDOZER_WARN_ON_ROOT: 0
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
@@ -240,6 +242,7 @@ jobs:
           echo "JAVA_HOME: $JAVA_HOME"
           mkdir -p ~/.buildozer
           chmod -R 777 ~/.buildozer
+          set -euxo pipefail
           buildozer --debug android debug || {
             echo "Build failed. Uploading logs..."
             cat .buildozer/android/app/buildozer.log || echo "No buildozer.log found"
