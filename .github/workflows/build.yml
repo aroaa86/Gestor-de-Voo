@@ -195,9 +195,6 @@ jobs:
           if [ -d "/usr/local/lib/android/sdk/cmdline-tools/latest/cmdline-tools" ]; then
           rm -rf /usr/local/lib/android/sdk/cmdline-tools/latest/cmdline-tools
           fi
-
-      - name: Move cmdline-tools
-        run: mv /path/to/source /usr/local/lib/android/sdk/cmdline-tools/latest/cmdline-tools
           
       - name: Build with Buildozer
         env:
