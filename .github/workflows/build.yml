@@ -192,13 +192,22 @@ jobs:
           echo "Accepting licenses..."
           yes | sdkmanager --licenses || echo "Licenses already accepted or failed to accept"
           echo "Installing required Android SDK components..."
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
+          sdkmanager "platform-tools" \
+               "platforms;android-33" \
+               "build-tools;33.0.0" \
+               "ndk;25.2.9519653"
           
       - name: Verify sdkmanager Installation
         run: |
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          echo "Checking installed platforms..."
+          ls -al $ANDROID_HOME/platforms/
+          echo "Checking installed build-tools..."
+          ls -al $ANDROID_HOME/build-tools/
+          echo "Checking installed NDK..."
+          ls -al $ANDROID_HOME/ndk/
           
       - name: Install Buildozer
         run: |
