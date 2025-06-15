@@ -39,7 +39,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.9'
 
       - name: Configure Git
         run: |
@@ -204,6 +204,7 @@ jobs:
           PATH: /usr/bin:$PATH:~/.local/bin/
           PYTHONPATH: ${{ github.workspace }}
         run: |
+          set -x
           echo "Verifying Git..."
           command -v git
           git --version
@@ -212,6 +213,7 @@ jobs:
             buildozer android debug && break || echo "Retrying Buildozer... ($i/3)"
             sleep 5
           done
+          cat .buildozer/android/app/buildozer.log || true  # Print log on failure
 
       - name: Verify APK Output
         run: |
