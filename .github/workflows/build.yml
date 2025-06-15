@@ -210,6 +210,11 @@ jobs:
           mkdir -p ~/.buildozer
           chmod -R 777 ~/.buildozer
           echo "Buildozer environment fixed"
+
+      - name: Create legacy sdkmanager symlink
+        run: |
+          mkdir -p /usr/local/lib/android/sdk/tools/bin
+          ln -s /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager
           
       - name: Build with Buildozer
         env:
