@@ -268,6 +268,13 @@ jobs:
             echo "Warning: $TARGET_FILE not found, skipping patch."
           fi
           python3 -m pip install -e p4a
+
+      - name: Disable IPv6 on Ubuntu runner
+        run: |
+          # Desabilita IPv6 em todas as interfaces
+          sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+          sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+          sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
           
       - name: Build with Buildozer
         env:
