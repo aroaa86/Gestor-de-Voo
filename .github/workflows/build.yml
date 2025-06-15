@@ -136,9 +136,14 @@ jobs:
 
       - name: Set up Android SDK environment variables
         run: |
-          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          echo "ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "PATH=$PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_ENV
+          echo "Setting up Android SDK..."
+          sudo apt-get update
+          sudo apt-get install -y openjdk-8-jdk
+          wget https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
+          mkdir -p android-sdk
+          unzip -q sdk-tools-linux-4333796.zip -d android-sdk
+          echo "export ANDROID_HOME=$PWD/android-sdk" >> $GITHUB_ENV
+          echo "export PATH=$PATH:$PWD/android-sdk/tools/bin:$PWD/android-sdk/platform-tools" >> $GITHUB_ENV
 
       - name: Ensure sdkmanager is executable
         run: |
