@@ -233,6 +233,7 @@ jobs:
         run: |
           mkdir -p ~/.buildozer/android/platform
           chmod -R 777 ~/.buildozer
+          echo "Buildozer directory ensured"
 
       - name: Create legacy sdkmanager symlink
         run: |
