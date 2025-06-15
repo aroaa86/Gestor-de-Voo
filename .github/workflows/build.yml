@@ -244,12 +244,6 @@ jobs:
         run: |
           sudo ln -sf /bin/bash /bin/sh
 
-      - name: Patch hostpython3 Makefiles to Bash
-        run: |
-          find .buildozer/android/platform \
-               -path '*/hostpython3/native-build/Makefile' \
-               -exec sed -i '1i SHELL := /bin/bash' {} \;
-
       - name: Debug Buildozer Configuration
         run: |
           if [ ! -f buildozer.spec ]; then
