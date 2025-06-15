@@ -6,6 +6,10 @@ jobs:
     name: Build Android APK
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: Set bash as the default shell
         run: |
