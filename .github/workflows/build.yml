@@ -148,6 +148,22 @@ jobs:
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           echo "sdkmanager path: $(command -v sdkmanager)"
 
+      - name: Verify Android SDK Installation
+        run: |
+          echo "Validating Android SDK setup..."
+          if [ ! -d "$ANDROID_HOME/platforms/android-33" ]; then
+            echo "Android platforms not installed correctly."
+            exit 1
+          fi
+          if [ ! -d "$ANDROID_HOME/build-tools/33.0.0" ]; then
+            echo "Build tools not installed correctly."
+            exit 1
+          fi
+          if [ ! -d "$ANDROID_NDK_HOME" ]; then
+            echo "NDK not installed correctly."
+            exit 1
+          fi
+
       - name: Set up Android SDK environment variables
         run: |
           echo "Setting up Android SDK..."
@@ -162,7 +178,6 @@ jobs:
           export PATH=$ANDROID_HOME/platform-tools:$PATH
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
-
 
       - name: Ensure sdkmanager is executable
         run: |
@@ -221,6 +236,11 @@ jobs:
           chmod -R 777 ~/.buildozer
           echo "Buildozer environment fixed"
 
+      - name: Ensure Buildozer Directory Exists
+        run: |
+          mkdir -p ~/.buildozer/android/platform
+          chmod -R 777 ~/.buildozer
+
       - name: Create legacy sdkmanager symlink
         run: |
           mkdir -p /usr/local/lib/android/sdk/tools/bin
@@ -235,11 +255,19 @@ jobs:
           find .buildozer/android/platform \
                -path '*/hostpython3/native-build/Makefile' \
                -exec sed -i '1i SHELL := /bin/bash' {} \;
+
+      - name: Debug Buildozer Configuration
+        run: |
+          if [ ! -f buildozer.spec ]; then
+            echo "Missing buildozer.spec file. Ensure it exists and is correctly configured."
+            exit 1
+          fi
+          echo "Current buildozer.spec content:"
+          cat buildozer.spec
           
       - name: Build with Buildozer
         env:
           SHELL: /bin/bash
-          MAKEFLAGS: -j1
           BUILDOZER_WARN_ON_ROOT: 0
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
