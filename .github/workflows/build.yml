@@ -6,10 +6,6 @@ jobs:
     name: Build Android APK
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        shell: bash
-
     steps:
       - name: Set bash as the default shell
         run: |
@@ -229,6 +225,10 @@ jobs:
         run: |
           mkdir -p /usr/local/lib/android/sdk/tools/bin
           ln -s /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager
+
+      - name: Force /bin/sh → bash
+        run: |
+          sudo ln -sf /bin/bash /bin/sh
           
       - name: Build with Buildozer
         env:
