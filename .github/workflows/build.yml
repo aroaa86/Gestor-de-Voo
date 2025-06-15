@@ -7,6 +7,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set bash as the default shell
+        run: |
+          echo "SHELL=/bin/bash" >> Makefile
+          
       - uses: actions/checkout@v4
 
       - name: Fix apt locks (if any)
@@ -61,6 +65,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git
           python -m pip install --upgrade pip
+          pip install buildozer
+          sudo apt-get install -y gcc make
           pip install --upgrade Cython==0.29.33
           pip install --upgrade buildozer==1.5.0
           pip install --upgrade virtualenv
