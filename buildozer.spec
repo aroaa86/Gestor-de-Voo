@@ -316,7 +316,7 @@ android.release_artifact = apk
 
 # (str) The format used to package the app for debug mode (apk or aar).
 # android.debug_artifact = apk
-
+android.p4a_env = SHELL=/bin/bash,MAKEFLAGS=-j1
 android.debug = True
 
 #
