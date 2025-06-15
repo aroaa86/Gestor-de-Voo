@@ -142,7 +142,7 @@ jobs:
 
       - name: Ensure sdkmanager is executable
         run: |
-          chmod +x /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager
+         sudo chmod +x /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager
           
       - name: Accept Android SDK Licenses and Install Tools
         run: |
