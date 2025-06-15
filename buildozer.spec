@@ -41,9 +41,7 @@ version = 0.1
 # Modifique a linha de requirements
 
 # (list) Application requirements
-requirements = python3==3.9.17,kivy==2.2.1,pillow,sqlite3,android,pyjnius,cython
-cython jnius/jnius.pyx
-pyjnius>=1.5.0
+requirements = python3==3.9.17,kivy==2.2.1,pillow,sqlite3,android,pyjnius
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -324,7 +322,7 @@ android.debug = True
 #
 # Python for android (p4a) specific
 #
-p4a.host_python = python3.11
+p4a.host_python = python3.9
 
 # (str) python-for-android URL to use for checkout
 p4a.url = https://github.com/kivy/python-for-android.git
