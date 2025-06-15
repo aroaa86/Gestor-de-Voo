@@ -252,10 +252,24 @@ jobs:
           fi
           echo "Current buildozer.spec content:"
           cat buildozer.spec
+
+      - name: Install latest python-for-android
+        run: |
+          python3 -m pip install --upgrade \
+            git+https://github.com/kivy/python-for-android.git@develop
+
+      - name: Patch and install custom p4a
+        run: |
+          git clone https://github.com/kivy/python-for-android.git p4a
+          sed -i '/run_shell("make"/s/$/\, env_update={\"SHELL\":\"\/bin\/bash\",\"MAKEFLAGS\":\"-j1\"}/' \
+            p4a/pythonforandroid/recipes/python3/hostpython3/build.py
+          python3 -m pip install -e p4a
           
       - name: Build with Buildozer
         env:
           SHELL: /bin/bash
+          CONFIG_SHELL: /bin/bash
+          MAKEFLAGS: -j1
           BUILDOZER_WARN_ON_ROOT: 0
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
