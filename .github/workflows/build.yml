@@ -224,6 +224,8 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
           PATH: /usr/bin:$PATH:~/.local/bin/
           PYTHONPATH: ${{ github.workspace }}
+          CFLAGS: "-D__GNUC_PREREQ(x,y)=1 -D__glibc_clang_prereq(x,y)=1"
+          CXXFLAGS: "-D__GNUC_PREREQ(x,y)=1 -D__glibc_clang_prereq(x,y)=1"
         run: |
           set -x
           echo "Starting Buildozer..."
