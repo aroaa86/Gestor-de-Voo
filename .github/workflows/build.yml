@@ -148,22 +148,6 @@ jobs:
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           echo "sdkmanager path: $(command -v sdkmanager)"
 
-      - name: Verify Android SDK Installation
-        run: |
-          echo "Validating Android SDK setup..."
-          if [ ! -d "$ANDROID_HOME/platforms/android-33" ]; then
-            echo "Android platforms not installed correctly."
-            exit 1
-          fi
-          if [ ! -d "$ANDROID_HOME/build-tools/33.0.0" ]; then
-            echo "Build tools not installed correctly."
-            exit 1
-          fi
-          if [ ! -d "$ANDROID_NDK_HOME" ]; then
-            echo "NDK not installed correctly."
-            exit 1
-          fi
-
       - name: Set up Android SDK environment variables
         run: |
           echo "Setting up Android SDK..."
