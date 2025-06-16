@@ -114,10 +114,12 @@ android.minapi = 21
 android.sdk = 33
 
 # (str) Android NDK version to use
-android.ndk = 25.2.9519653
+android.ndk = 23b
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 android.ndk_api = 21
+[app]
+android.ndk_flags = "-Wno-error"
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
