@@ -65,11 +65,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git
           pip install --upgrade pip
-          pip install sh==2.0.0
+          pip install "sh>=2,<3
           pip install -r requirements.txt
           sudo apt-get install -y gcc make
           pip install --upgrade Cython==0.29.33
-          pip install --upgrade buildozer==1.5.0
+          pip install buildozer
           pip install --upgrade virtualenv
           pip install --upgrade wheel
           pip install --upgrade setuptools
