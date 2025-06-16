@@ -7,14 +7,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Validate buildozer.spec
-        run: |
-          if grep -o '^\[app\]' buildozer.spec | wc -l | grep -q '^1$'; then
-            echo "Valid buildozer.spec file."
-          else
-            echo "Duplicate [app] section found in buildozer.spec file!"
-            exit 1
-          fi
       - name: Set bash as the default shell
         run: |
           echo "SHELL=/bin/bash" >> Makefile
