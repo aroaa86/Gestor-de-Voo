@@ -289,6 +289,7 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
           CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1"
           CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1"
+          export CFLAGS: "$CFLAGS -ferror-limit=0"
         run: |
           set -x
           echo "Starting Buildozer..."
