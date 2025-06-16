@@ -123,8 +123,8 @@ android.ndk_api = 21
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-# android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653
-android.ndk_path = /path/to/updated/ndk
+android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653
+# android.ndk_path = /path/to/updated/ndk
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 android.sdk_path = /usr/local/lib/android/sdk
