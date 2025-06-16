@@ -64,8 +64,8 @@ jobs:
           export PIP_CACHE_DIR=/tmp/.cache/pip
           sudo apt-get update
           sudo apt-get install -y git
-          python -m pip install --upgrade pip
-          pip install "sh>=2,<3" buildozer --force-reinstall
+          pip instal --user --upgrade pip
+          pip install --user "sh>=2,<3" buildozer
           sudo apt-get install -y gcc make
           pip install --upgrade Cython==0.29.33
           pip install --upgrade buildozer==1.5.0
@@ -147,6 +147,12 @@ jobs:
           echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           echo "sdkmanager path: $(command -v sdkmanager)"
+           echo "Ensuring sdkmanager is executable..."
+           sudo chmod +x $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
+           echo "Accepting licenses..."
+           yes | sdkmanager --licenses || echo "Licenses already accepted or failed to accept"
+           echo "Installing required Android SDK components..."
+           sdkmanager "platform-tools"
 
       - name: Set up Android SDK environment variables
         run: |
@@ -299,6 +305,9 @@ jobs:
           mkdir -p ~/.buildozer
           chmod -R 777 ~/.buildozer
           set -euxo pipefail
+          if [ ! -f buildozer.spec ]; then
+            buildozer init
+          fi
           buildozer --debug android debug || {
             echo "Build failed. Uploading logs..."
             cat .buildozer/android/app/buildozer.log || echo "No buildozer.log found"
