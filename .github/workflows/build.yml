@@ -186,7 +186,7 @@ jobs:
           sdkmanager "platform-tools" \
                "platforms;android-33" \
                "build-tools;33.0.0" \
-               "ndk;25.2.9519653" \
+               "ndk;23.1.7779620" \
                "cmdline-tools;latest"
           
       - name: Verify sdkmanager Installation
@@ -295,8 +295,8 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
           PATH: /usr/bin:$PATH:~/.local/bin/
           PYTHONPATH: ${{ github.workspace }}
-          CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1"
-          CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1"
+          CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=21"
+          CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=21"
           export CFLAGS: "$CFLAGS -ferror-limit=0"
         run: |
           set -x
