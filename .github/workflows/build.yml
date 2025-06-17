@@ -148,12 +148,12 @@ jobs:
           echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           echo "sdkmanager path: $(command -v sdkmanager)"
-           echo "Ensuring sdkmanager is executable..."
-           sudo chmod +x $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
-           echo "Accepting licenses..."
-           yes | sdkmanager --licenses || echo "Licenses already accepted or failed to accept"
-           echo "Installing required Android SDK components..."
-           sdkmanager "platform-tools"
+          echo "Ensuring sdkmanager is executable..."
+          sudo chmod +x $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
+          echo "Accepting licenses..."
+          yes | sdkmanager --licenses || echo "Licenses already accepted or failed to accept"
+          echo "Installing required Android SDK components..."
+          sdkmanager "platform-tools"
 
       - name: Set up Android SDK environment variables
         run: |
