@@ -213,6 +213,9 @@ jobs:
           chmod 777 $HOME/.buildozer
           export PATH=$PATH:~/.local/bin/
 
+      - name: List NDK directories
+        run: ls -l /usr/local/lib/android/sdk/ndk/
+
       - name: Debug Buildozer Configuration
         run: |
           cat buildozer.spec
