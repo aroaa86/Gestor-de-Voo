@@ -108,7 +108,7 @@ android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 android.api = 33
 
 # (int) Minimum API your APK / AAB will support.
-android.minapi = 21
+android.minapi = 23
 
 # (int) Android SDK version to use
 android.sdk = 33
@@ -126,7 +126,6 @@ android.ndk_flags = "-Wno-error"
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
 android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653
-# android.ndk_path = /path/to/updated/ndk
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 android.sdk_path = /usr/local/lib/android/sdk
