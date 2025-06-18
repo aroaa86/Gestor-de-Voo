@@ -1,78 +1,31 @@
-name: Build
-on: [push, pull_request]
+name: Build Kivy Android APK
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build-android:
-    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set bash as the default shell
-        run: |
-          echo "SHELL=/bin/bash" >> Makefile
-          
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Fix apt locks (if any)
-        run: |
-          sudo rm -f /var/lib/apt/lists/lock
-          sudo rm -f /var/cache/apt/archives/lock
-          sudo rm -f /var/lib/dpkg/lock
-          sudo dpkg --configure -a
-
-      - name: Ensure python3-pip is installed
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip
-
-      # Install Git as early as possible
-      - name: Install and Verify Git
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git
-          echo "Git installed:"
-          which git
-          git --version
-
-      - name: Set up Java
+      - name: Set up Java (for Android SDK)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Python
+      - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
-
-      - name: Configure Git
-        run: |
-          git --version
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-
-      - name: Cache Python dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          export PIP_CACHE_DIR=/tmp/.cache/pip
-          sudo apt-get update
-          sudo apt-get install -y git
-          pip install --upgrade pip
-          pip install "sh>=2,<3"
-          pip install -r requirements.txt
-          sudo apt-get install -y gcc make
-          pip install --upgrade Cython==0.29.33
-          pip install buildozer
-          pip install --upgrade virtualenv
-          pip install --upgrade wheel
-          pip install --upgrade setuptools
 
       - name: Install system dependencies
         run: |
@@ -82,57 +35,19 @@ jobs:
             libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev \
             libgstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
             autoconf automake libtool pkg-config libltdl-dev libffi-dev libssl-dev \
-            ccache cmake unzip wget
+            cmake unzip wget
 
-      - name: Install python3-pip
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip
-
-      - name: Debug environment
-        run: |
-          echo "ID: $(id)"
-          echo "OS: $(uname -a)"
-          echo "Available package managers:"
-          command -v apt-get || echo "apt-get not found"
-          command -v yum || echo "yum not found"
-          command -v apk || echo "apk not found"
-          command -v dnf || echo "dnf not found"
-          command -v pip || echo "pip not found"
-
-      - name: Fix pip permissions
+      - name: Install Python dependencies
         run: |
           python3 -m pip install --upgrade pip setuptools wheel
-          mkdir -p ~/.cache/pip ~/.buildozer
-          chmod -R 777 ~/.cache/pip ~/.buildozer
+          pip install --upgrade Cython==0.29.33 buildozer==1.5.0
+          pip install "sh>=2,<3"
+          # Instala python-for-android da branch develop para as últimas correções
+          pip install git+https://github.com/kivy/python-for-android.git@develop
 
-      - name: Configure ccache
+      - name: Configure Android SDK environment and create symlinks
         run: |
-          sudo /usr/sbin/update-ccache-symlinks
-          echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
-
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v4
-        with:
-          path: ~/.buildozer
-          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer
-
-      - name: Clean and prepare environment
-        run: |
-          echo 'export ANDROID_HOME=/usr/local/lib/android/sdk' >> ~/.bashrc
-          echo 'export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH' >> ~/.bashrc
-          export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
-          export PATH=$PATH:~/.local/bin/
-          echo $ANDROID_HOME
-          echo $ANDROID_NDK_HOME
-          echo $PATH
-          source ~/.bashrc
-
-      - name: Set up Android SDK environment and symlink
-        run: |
-          # Define ANDROID_HOME (já deve estar configurado pelo runner, mas reforçamos)
+          # Define ANDROID_HOME (já deve estar configurado pelo runner, mas reforçamos )
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
           export ANDROID_HOME=/usr/local/lib/android/sdk
 
@@ -140,107 +55,48 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 
-          # Cria o symlink para o local antigo que o Buildozer pode procurar
+          # Cria os symlinks para os locais antigos que o Buildozer pode procurar
           sudo mkdir -p $ANDROID_HOME/tools/bin
-          sudo ln -s $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
-          sudo ln -s $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager
+          sudo ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
+          sudo ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager
 
-          # Aceita as licenças (pode ser redundante, mas garante)
+          # Aceita as licenças (garante que não há prompts)
           yes | sdkmanager --licenses
 
-          # Instala componentes essenciais (se já não estiverem instalados)
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
+          # Instala componentes essenciais do SDK/NDK
+          sdkmanager "platform-tools" \
+                     "platforms;android-33" \
+                     "build-tools;33.0.0" \
+                     "ndk;25.2.9519653"
+
+          # Define ANDROID_NDK_HOME para o Buildozer
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+          export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653
 
           echo "sdkmanager path: $(command -v sdkmanager)"
           echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
           echo "PATH: $PATH"
-          
-      - name: Install Buildozer
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y zlib1g-dev libncurses5-dev libffi-dev libssl-dev
-          python3 -m pip install --upgrade Cython==0.29.33 buildozer==1.5.0
 
-      - name: Debug Buildozer Configuration
+      - name: Debug Buildozer Configuration (Optional)
         run: |
           cat buildozer.spec
 
-      - name: Set Buildozer Environment
-        run: |
-          export PATH=/usr/bin:$PATH:~/.local/bin/
-          echo "PATH: $PATH"
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
-          command -v git
-          git --version
-
-      - name: Check Network Connectivity
-        run: |
-          ping -c 4 google.com || echo "Network is unreachable"
-
-      - name: Fix Permissions for Buildozer
-        run: |
-          mkdir -p ~/.buildozer
-          chmod -R 777 ~/.buildozer
-          echo "Buildozer environment fixed"
-
-      - name: Ensure Buildozer Directory Exists
-        run: |
-          mkdir -p ~/.buildozer/android/platform
-          chmod -R 777 ~/.buildozer
-          echo "Buildozer directory ensured"
-
-      - name: Force /bin/sh → bash
-        run: |
-          sudo ln -sf /bin/bash /bin/sh
-
-      - name: Debug Buildozer Configuration
-        run: |
-          if [ ! -f buildozer.spec ]; then
-            echo "Missing buildozer.spec file. Ensure it exists and is correctly configured."
-            exit 1
-          fi
-          echo "Current buildozer.spec content:"
-          cat buildozer.spec
-
-      - name: Install latest python-for-android
-        run: |
-          python3 -m pip install --upgrade \
-            git+https://github.com/kivy/python-for-android.git@develop
-
-      - name: Patch and install custom p4a
-        run: |
-          git clone https://github.com/kivy/python-for-android.git p4a
-          TARGET_FILE="p4a/pythonforandroid/recipes/python3/hostpython3/build.py"
-          if [ -f "$TARGET_FILE" ]; then
-            sed -i '/run_shell("make"/s/$/\, env_update={"SHELL":"\/bin\/bash","MAKEFLAGS":"-j1"}/' $TARGET_FILE
-          else
-            echo "Warning: $TARGET_FILE not found, skipping patch."
-          fi
-          python3 -m pip install -e p4a
-
-      - name: Disable IPv6 on Ubuntu runner
-        run: |
-          # Desabilita IPv6 em todas as interfaces
-          sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
-          sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
-          sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
-          
-      - name: Build with Buildozer
+      - name: Build Android APK with Buildozer
         env:
+          # Variáveis de ambiente para o Buildozer
           SHELL: /bin/bash
           CONFIG_SHELL: /bin/bash
           MAKEFLAGS: -j1
           BUILDOZER_WARN_ON_ROOT: 0
-          ANDROID_HOME: /usr/local/lib/android/sdk
-          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/25.2.9519653
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          PATH: /usr/bin:$PATH:~/.local/bin/
+          PATH: ${{ env.PATH }}
           PYTHONPATH: ${{ github.workspace }}
-          CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=23 -D__ANDROID_MIN_SDK_VERSION__=23"
-          CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=23 -D__ANDROID_MIN_SDK_VERSION__=23"
-          export CFLAGS: "$CFLAGS -ferror-limit=0"
+          # CFLAGS e CXXFLAGS podem ser necessários para problemas de compilação específicos
+          CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=33 -D__ANDROID_MIN_SDK_VERSION__=23"
+          CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=33 -D__ANDROID_MIN_SDK_VERSION__=23"
         run: |
           set -x
           echo "Starting Buildozer..."
@@ -249,10 +105,13 @@ jobs:
           echo "JAVA_HOME: $JAVA_HOME"
           mkdir -p ~/.buildozer
           chmod -R 777 ~/.buildozer
-          set -euxo pipefail
+          
+          # Garante que o buildozer.spec existe ou o inicializa
           if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
+          
+          # Executa o Buildozer
           buildozer --debug android debug || {
             echo "Build failed. Uploading logs..."
             cat .buildozer/android/app/buildozer.log || echo "No buildozer.log found"
