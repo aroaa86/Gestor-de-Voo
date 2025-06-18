@@ -129,89 +129,37 @@ jobs:
           echo $ANDROID_NDK_HOME
           echo $PATH
           source ~/.bashrc
-          
-      - name: Download and Set Up Android SDK Command-line Tools
-        run: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip commandlinetools-linux-9477386_latest.zip -d $ANDROID_HOME/cmdline-tools
-          if [ -d "$ANDROID_HOME/cmdline-tools/latest/cmdline-tools" ]; then
-            rm -rf $ANDROID_HOME/cmdline-tools/latest/cmdline-tools
-          fi
-          if [ -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
-            rm -rf $ANDROID_HOME/cmdline-tools/latest
-          fi
-          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
-          rm commandlinetools-linux-9477386_latest.zip
-          echo "export ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          echo "sdkmanager path: $(command -v sdkmanager)"
-          echo "Ensuring sdkmanager is executable..."
-          sudo chmod +x $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
-          echo "Accepting licenses..."
-          yes | sdkmanager --licenses || echo "Licenses already accepted or failed to accept"
-          echo "Installing required Android SDK components..."
-          sdkmanager "platform-tools"
 
-      - name: Set up Android SDK environment variables
+      - name: Set up Android SDK environment and symlink
         run: |
-          echo "Setting up Android SDK..."
-          sudo apt update
-          sudo apt install -y wget unzip
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          sudo mkdir -p /usr/local/lib/android/sdk/cmdline-tools
-          sudo unzip -o cmdline-tools.zip -d /usr/local/lib/android/sdk/cmdline-tools/
-          sudo mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
+          # Define ANDROID_HOME (já deve estar configurado pelo runner, mas reforçamos)
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
           export ANDROID_HOME=/usr/local/lib/android/sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          export PATH=$ANDROID_HOME/platform-tools:$PATH
+
+          # Adiciona o caminho correto do sdkmanager ao PATH
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+
+          # Cria o symlink para o local antigo que o Buildozer pode procurar
+          sudo mkdir -p $ANDROID_HOME/tools/bin
+          sudo ln -s $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
+          sudo ln -s $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager
+
+          # Aceita as licenças (pode ser redundante, mas garante)
           yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
 
-      - name: Ensure sdkmanager is executable
-        run: |
-         sudo chmod +x /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager
-          
-      - name: Accept Android SDK Licenses and Install Tools
-        run: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          echo "Ensuring sdkmanager is executable..."
-          sudo chmod +x $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
-          echo "Accepting licenses..."
-          yes | sdkmanager --licenses || echo "Licenses already accepted or failed to accept"
-          echo "Installing required Android SDK components..."
-          sdkmanager "platform-tools" \
-               "platforms;android-33" \
-               "build-tools;33.0.0" \
-               "ndk;25.2.9519653" \
-               "cmdline-tools;latest"
-          
-      - name: Verify sdkmanager Installation
-        run: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-          export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          echo "Checking installed platforms..."
-          ls -al $ANDROID_HOME/platforms/
-          echo "Checking installed build-tools..."
-          ls -al $ANDROID_HOME/build-tools/
-          echo "Checking installed NDK..."
-          ls -al $ANDROID_HOME/ndk/
+          # Instala componentes essenciais (se já não estiverem instalados)
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0" "ndk;25.2.9519653"
+
+          echo "sdkmanager path: $(command -v sdkmanager)"
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "PATH: $PATH"
           
       - name: Install Buildozer
         run: |
           sudo apt-get update
           sudo apt-get install -y zlib1g-dev libncurses5-dev libffi-dev libssl-dev
           python3 -m pip install --upgrade Cython==0.29.33 buildozer==1.5.0
-        
-      - name: Set up Android SDK & NDK
-        run: |
-          mkdir -p $HOME/.buildozer
-          chmod 777 $HOME/.buildozer
-          export PATH=$PATH:~/.local/bin/
 
       - name: Debug Buildozer Configuration
         run: |
@@ -242,11 +190,6 @@ jobs:
           mkdir -p ~/.buildozer/android/platform
           chmod -R 777 ~/.buildozer
           echo "Buildozer directory ensured"
-
-      - name: Create legacy sdkmanager symlink
-        run: |
-          mkdir -p /usr/local/lib/android/sdk/tools/bin
-          ln -s /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager
 
       - name: Force /bin/sh → bash
         run: |
