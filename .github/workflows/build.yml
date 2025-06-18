@@ -95,6 +95,10 @@ jobs:
           CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=33 -D__ANDROID_MIN_SDK_VERSION__=23"
           CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=33 -D__ANDROID_MIN_SDK_VERSION__=23"
         run: |
+          export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653
+          export ANDROID_NDK=/usr/local/lib/android/sdk/ndk/25.2.9519653
+          export ANDROID_NDK_ROOT=/usr/local/lib/android/sdk/ndk/25.2.9519653
+          export PATH="$HOME/.local/bin:$PATH"
           set -x
           echo "Starting Buildozer..."
           echo "ANDROID_HOME: $ANDROID_HOME"
