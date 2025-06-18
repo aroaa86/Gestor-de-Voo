@@ -295,8 +295,8 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
           PATH: /usr/bin:$PATH:~/.local/bin/
           PYTHONPATH: ${{ github.workspace }}
-          CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=21"
-          CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=21"
+          CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=23 -D__ANDROID_MIN_SDK_VERSION__=23"
+          CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=23 -D__ANDROID_MIN_SDK_VERSION__=23"
           export CFLAGS: "$CFLAGS -ferror-limit=0"
         run: |
           set -x
