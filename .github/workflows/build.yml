@@ -84,7 +84,6 @@ jobs:
 
       - name: Build Android APK with Buildozer
         env:
-          # Variáveis de ambiente para o Buildozer
           SHELL: /bin/bash
           CONFIG_SHELL: /bin/bash
           MAKEFLAGS: -j1
@@ -92,9 +91,7 @@ jobs:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          PATH: ${{ env.PATH }}
           PYTHONPATH: ${{ github.workspace }}
-          # CFLAGS e CXXFLAGS podem ser necessários para problemas de compilação específicos
           CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=33 -D__ANDROID_MIN_SDK_VERSION__=23"
           CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=33 -D__ANDROID_MIN_SDK_VERSION__=23"
         run: |
