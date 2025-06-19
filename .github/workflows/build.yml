@@ -44,6 +44,11 @@ jobs:
           pip install "sh>=2,<3"
           # Instala python-for-android da branch develop para as últimas correções
           pip install git+https://github.com/kivy/python-for-android.git@develop
+          for i in {1..5}; do
+            pip install --upgrade pip && pip install "sh>=2,<3" && break
+            echo "Retrying in 10 seconds..."
+            sleep 10
+          done
 
       - name: Configure Android SDK environment and create symlinks
         run: |
