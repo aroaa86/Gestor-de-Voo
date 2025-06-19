@@ -2,15 +2,14 @@ name: Build Kivy Android APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Evita builds travados
 
     steps:
       - name: Checkout code
@@ -30,134 +29,84 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git python3-pip build-essential python3-dev \
+          sudo apt-get install -y \
+            git python3-pip build-essential python3-dev \
             ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
             libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev \
             libgstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
             autoconf automake libtool pkg-config libltdl-dev libffi-dev libssl-dev \
-            cmake unzip wget
+            cmake unzip wget coreutils  # Adicionado coreutils explicitamente
 
       - name: Install Python dependencies
         run: |
-          python3 -m pip install --upgrade pip setuptools wheel
-          pip install --upgrade Cython==0.29.33 buildozer==1.5.0
-          pip install "sh>=2,<3"
-          # Instala python-for-android da branch develop para as últimas correções
-          pip install git+https://github.com/kivy/python-for-android.git@develop
-          for i in {1..5}; do
-            pip install --upgrade pip && pip install "sh>=2,<3" && break
-            echo "Retrying in 10 seconds..."
-            sleep 10
-          done
+          python -m pip install --upgrade pip setuptools wheel virtualenv
+          pip install --upgrade \
+            Cython==0.29.33 \
+            buildozer==1.5.0 \
+            "sh>=2,<3" \
+            git+https://github.com/kivy/python-for-android.git@develop
 
-      - name: Configure Android SDK environment and create symlinks
+      - name: Configure Android SDK
         run: |
-          # Define ANDROID_HOME (já deve estar configurado pelo runner, mas reforçamos )
+          # Configura variáveis de ambiente
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-
-          # Adiciona o caminho correto do sdkmanager ao PATH
+          echo "ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 
-          # Cria os symlinks para os locais antigos que o Buildozer pode procurar
+          # Configura symlinks
           sudo mkdir -p $ANDROID_HOME/tools/bin
           sudo ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
           sudo ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager
 
-          # Aceita as licenças (garante que não há prompts)
+          # Aceita licenças e instala componentes
           yes | sdkmanager --licenses
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;33.0.0" \
+            "ndk;25.2.9519653"
 
-          # Instala componentes essenciais do SDK/NDK
-          sdkmanager "platform-tools" \
-                     "platforms;android-33" \
-                     "build-tools;33.0.0" \
-                     "ndk;25.2.9519653"
-
-          # Define ANDROID_NDK_HOME para o Buildozer
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
-          export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653
-
-          echo "sdkmanager path: $(command -v sdkmanager)"
-          echo "ANDROID_HOME: $ANDROID_HOME"
-          echo "ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
-          echo "PATH: $PATH"
-
-      - name: Fix Buildozer Permissions
+      - name: Prepare Build Environment
         run: |
           mkdir -p ~/.buildozer
           chmod -R 777 ~/.buildozer
-
-      - name: Debug Buildozer Configuration (Optional)
-        run: |
-          cat buildozer.spec
-
-      - name: Ensure coreutils (mkdir) is installed
-        run: sudo apt-get update && sudo apt-get install -y coreutils
-
-      - name: Build Android APK with Buildozer
-        env:
-          # Variáveis de ambiente para o Buildozer
-          SHELL: /bin/bash
-          CONFIG_SHELL: /bin/bash
-          MAKEFLAGS: -j1
-          BUILDOZER_WARN_ON_ROOT: 0
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
-          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
-          PATH: ${{ env.PATH }}
-          PYTHONPATH: ${{ github.workspace }}
-          # CFLAGS e CXXFLAGS podem ser necessários para problemas de compilação específicos
-          CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=33 -D__ANDROID_MIN_SDK_VERSION__=23"
-          CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=33 -D__ANDROID_MIN_SDK_VERSION__=23"
-        run: |
-          set -x
-          echo "Starting Buildozer..."
-          echo "ANDROID_HOME: $ANDROID_HOME"
-          echo "ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
-          echo "JAVA_HOME: $JAVA_HOME"
-          mkdir -p ~/.buildozer
-          chmod -R 777 ~/.buildozer
-          
-          # Garante que o buildozer.spec existe ou o inicializa
           if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
-          
-          # Executa o Buildozer
-          buildozer --debug android debug || {
-            echo "Build failed. Uploading logs..."
-            cat .buildozer/android/app/buildozer.log || echo "No buildozer.log found"
+
+      - name: Build APK
+        env:
+          SHELL: /bin/bash
+          MAKEFLAGS: -j1
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
+        run: |
+          set -x
+          buildozer --verbose android debug 2>&1 | tee build.log || {
+            echo "Build failed! Log:"
+            cat build.log
             exit 1
           }
 
-      - name: Verify APK Output
+      - name: Verify Build Output
         run: |
-          ls -al bin/
-      - name: Verify APK Output
-        run: |
-          ls -al bin/
+          ls -la .buildozer/android/platform/build-*/build/outputs/apk/debug/
 
-      - name: List APK Files
-        run: ls -R .buildozer/android/platform
-          
-      - name: Upload APK
+      - name: Upload APK Artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: .buildozer/android/platform/build-*/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-          retention-days: 90
+          retention-days: 7
 
-      - name: Upload Logs (if build fails)
+      - name: Upload Logs on Failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: buildozer-logs
+          name: build-failure-logs
           path: |
+            build.log
             .buildozer/android/app/buildozer.log
-            .buildozer/android/platform/build-*/build/outputs/logs/*
-            .buildozer/android/platform/build-*/build/outputs/apk/debug/*
-          if-no-files-found: ignore
-          retention-days: 30
+          retention-days: 3
