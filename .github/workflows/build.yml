@@ -113,8 +113,10 @@ jobs:
           chmod -R 777 ~/.buildozer
           
           # Garante que o buildozer.spec existe ou o inicializa
-          if [ ! -f buildozer.spec ]; then
-            buildozer init
+          if [ -f .buildozer/android/app/buildozer.log ]; then
+            cat .buildozer/android/app/buildozer.log
+          else
+            echo "No buildozer.log found"
           fi
           
           # Executa o Buildozer
