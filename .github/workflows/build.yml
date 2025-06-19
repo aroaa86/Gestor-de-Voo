@@ -92,6 +92,9 @@ jobs:
         run: |
           cat buildozer.spec
 
+      - name: Ensure coreutils (mkdir) is installed
+        run: sudo apt-get update && sudo apt-get install -y coreutils
+
       - name: Build Android APK with Buildozer
         env:
           # Variáveis de ambiente para o Buildozer
