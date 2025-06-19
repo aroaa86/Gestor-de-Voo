@@ -48,32 +48,39 @@ jobs:
 
       - name: Configure Android SDK
         run: |
-          # Install command-line tools if not present
-          if [ ! -f /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager ]; then
-            mkdir -p /usr/local/lib/android
-            cd /usr/local/lib/android
-            wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
-            unzip cmdline-tools.zip
-            mkdir -p sdk/cmdline-tools/latest
-            mv cmdline-tools/* sdk/cmdline-tools/latest/
-            rm -rf cmdline-tools cmdline-tools.zip
-          fi
-          # Continue with your existing logic...
-          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          echo "ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
-
+          # Configura variáveis corretamente
+          ANDROID_HOME="/usr/local/lib/android/sdk"
+          echo "ANDROID_HOME=${ANDROID_HOME}" >> $GITHUB_ENV
+    
+          # Configura PATH para incluir o cmdline-tools
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+    
+          # Verifica instalação do SDK
+          echo "Verificando instalação do Android SDK..."
+          ls -la $ANDROID_HOME
+    
+          # Configura symlinks
           sudo mkdir -p $ANDROID_HOME/tools/bin
           sudo ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
           sudo ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager
-
-          yes | sdkmanager --licenses
-          sdkmanager \
+    
+          # Verifica se sdkmanager está acessível
+          echo "Verificando sdkmanager..."
+          which sdkmanager || echo "sdkmanager não encontrado"
+          ls -la $ANDROID_HOME/cmdline-tools/latest/bin/
+    
+          # Instala componentes (com verificação)
+          echo "Instalando componentes do Android SDK..."
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
             "platform-tools" \
             "platforms;android-33" \
             "build-tools;33.0.0" \
             "ndk;25.2.9519653"
-
+    
+          # Configura NDK
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+          
       - name: Prepare Build Environment
         run: |
           mkdir -p ~/.buildozer
