@@ -75,8 +75,6 @@ jobs:
         run: |
           mkdir -p ~/.buildozer
           chmod -R 777 ~/.buildozer
-          ./configure --without-shm
-          make
           if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
