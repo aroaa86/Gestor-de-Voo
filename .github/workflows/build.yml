@@ -79,6 +79,22 @@ jobs:
             buildozer init
           fi
 
+      - name: Verify Android Tools
+        run: |
+          echo "Verificando instalação do Android SDK..."
+          ls -la $ANDROID_HOME
+          echo "Verificando NDK..."
+          ls -la $ANDROID_NDK_HOME
+          echo "Verificando sdkmanager..."
+          which sdkmanager || echo "sdkmanager não encontrado"
+          sdkmanager --list || echo "Falha ao executar sdkmanager"
+
+      - name: Fix NDK Path
+        run: |
+          echo "Removendo NDK conflitante..."
+          sudo rm -rf /usr/local/lib/android/sdk/ndk/27.2.12479018
+          echo "ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
+
       - name: Build APK with Buildozer
         env:
           SHELL: /bin/bash
@@ -87,24 +103,24 @@ jobs:
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
           JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
         run: |
-          set -x
-          # Limpa builds anteriores e redireciona logs para arquivos
-          {
-            rm -rf .buildozer/android/platform/build-*
-            buildozer --verbose android debug
-          } > build-full.log 2>&1 || {
-            echo "Build failed! Last 100 lines:"
-            tail -n 100 build-full.log
-            exit 1
-          }
+          set -ex
     
-          # Verifica se o APK foi gerado
+          # Remove NDK conflitante
+          sudo rm -rf /usr/local/lib/android/sdk/ndk/27.*
+    
+          # Limpeza
+          rm -rf .buildozer/android/platform/build-*
+    
+          # Build com log completo
+          buildozer --verbose android debug > >(tee build.log) 2> >(tee build-errors.log >&2)
+    
+          # Verificação do APK
           if ! ls .buildozer/android/platform/build-*/build/outputs/apk/debug/*.apk >/dev/null 2>&1; then
-            echo "APK não encontrado! Logs resumidos:"
-            grep -i error build-full.log | head -n 50
+            echo "=== ERROS CRÍTICOS ==="
+            grep -i -E "error|fail|exception" build-errors.log | sort | uniq
             exit 1
           fi
-
+          
       - name: Process Logs
         if: always()
         run: |
