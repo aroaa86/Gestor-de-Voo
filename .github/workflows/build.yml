@@ -79,6 +79,22 @@ jobs:
             buildozer init
           fi
 
+      - name: Verify Environment
+        run: |
+          echo "=== VERIFICAÇÃO DO AMBIENTE ==="
+          echo "Buildozer version:"
+          buildozer --version || echo "Buildozer não disponível"
+          echo "Android SDK:"
+          ls -la $ANDROID_HOME
+          echo "Android NDK:"
+          ls -la $ANDROID_NDK_HOME
+          echo "Java:"
+          java -version
+          echo "Python:"
+          python --version
+          echo "PATH:"
+          echo $PATH
+
       - name: Verify Android Tools
         run: |
           echo "Verificando instalação do Android SDK..."
@@ -105,21 +121,50 @@ jobs:
         run: |
           set -ex
     
-          # Remove NDK conflitante
-          sudo rm -rf /usr/local/lib/android/sdk/ndk/27.*
-    
-          # Limpeza
+          # 1. Preparação do ambiente
+          echo "Preparando ambiente..."
+          mkdir -p ~/.buildozer
+          chmod -R 777 ~/.buildozer
           rm -rf .buildozer/android/platform/build-*
     
-          # Build com log completo
-          buildozer --verbose android debug > >(tee build.log) 2> >(tee build-errors.log >&2)
+          # 2. Execução do Buildozer com captura de logs robusta
+          {
+            echo "=== INÍCIO DO BUILD ==="
+            echo "ANDROID_HOME: $ANDROID_HOME"
+            echo "ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
+            echo "JAVA_HOME: $JAVA_HOME"
+            echo "PATH: $PATH"
+      
+            # Verifica se o buildozer está acessível
+            which buildozer || echo "Buildozer não encontrado no PATH"
+      
+            # Executa o buildozer
+            buildozer --verbose android debug 2>&1
+            echo "=== FIM DO BUILD ==="
+          } > build-full.log 2>&1 || {
+            echo "=== BUILD FALHOU ==="
+            [ -f build-full.log ] && {
+              echo "Últimas 50 linhas do log:"
+              tail -n 50 build-full.log
+              echo "Erros encontrados:"
+              grep -i -E "error|fail|exception|warning" build-full.log | sort | uniq
+            } || echo "Nenhum log foi gerado"
+            exit 1
+          }
     
-          # Verificação do APK
-          if ! ls .buildozer/android/platform/build-*/build/outputs/apk/debug/*.apk >/dev/null 2>&1; then
-            echo "=== ERROS CRÍTICOS ==="
-            grep -i -E "error|fail|exception" build-errors.log | sort | uniq
+          # 3. Verificação do APK
+          APK_PATH=$(find .buildozer -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "=== ERRO: APK NÃO GERADO ==="
+            [ -f build-full.log ] && {
+              echo "Possíveis erros:"
+              grep -i -E "error|fail|exception" build-full.log | sort | uniq
+            }
             exit 1
           fi
+    
+          echo "=== SUCESSO ==="
+          echo "APK gerado em: $APK_PATH"
           
       - name: Process Logs
         if: always()
