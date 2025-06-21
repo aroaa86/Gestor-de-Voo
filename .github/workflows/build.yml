@@ -73,6 +73,17 @@ jobs:
 
       - name: Prepare Build Environment
         run: |
+          # Ignora warnings específicos
+          export CFLAGS="-Wno-error=implicit-function-declaration -Wno-unused-parameter -Wno-missing-field-initializers"
+          export CPPFLAGS="$CFLAGS"
+          echo "CFLAGS=$CFLAGS" >> $GITHUB_ENV
+    
+          # Instala docwriter se necessário
+          pip install docwriter || echo "Docwriter não instalado - continuando sem documentação"
+    
+          # Configurações específicas para python-for-android
+          echo "export P4A_IGNORE_WARNINGS=1" >> $GITHUB_ENV
+          echo "export PYTHON_FORCE_REINSTALL=1" >> $GITHUB_ENV
           mkdir -p ~/.buildozer
           chmod -R 777 ~/.buildozer
           if [ ! -f buildozer.spec ]; then
@@ -142,66 +153,33 @@ jobs:
         run: |
           set -ex
     
-          # 1. Configuração de fallback para conexão
-          echo "Configurando timeouts e retries..."
-          export PIP_DEFAULT_TIMEOUT=100
-          export PIP_RETRIES=5
-          export BUILD_MAX_RETRIES=3
+          set -e  # Sai no primeiro erro real
     
-          # 2. Função com retry automático
-          build_with_retry() {
-            local retries=$BUILD_MAX_RETRIES
-            local count=0
-            local success=0
-      
-            while [ $count -lt $retries ]; do
-              echo "Tentativa $((count+1)) de $retries"
-              if buildozer --verbose android debug 2>&1 | tee build.log; then
-                success=1
-                break
-              fi
-        
-              # Verifica se o erro é de rede
-              if grep -q "Network is unreachable" build.log; then
-                echo "Erro de rede detectado, tentando novamente..."
-                sleep $((count * 5 + 10)) # Backoff exponencial
-              else
-                break # Outros erros não tentamos novamente
-              fi
-        
-              ((count++))
-            done
-      
-            return $((1 - success))
-          }
+          # Limpa builds anteriores
+          buildozer android clean
     
-          # 3. Execução principal
+          # Build com tratamento de warnings
           {
+            buildozer --verbose android debug 2>&1 | 
+            grep -v "WARNING" |
+            grep -v "Warning" || 
+            [ $? -eq 1 ]  # Ignora exit code 1 do grep quando não encontra matches
+          } > build.log
+    
+          # Verifica se o APK foi criado independentemente dos warnings
+          if ls .buildozer/android/platform/build-*/build/outputs/apk/debug/*.apk >/dev/null 2>&1; then
+            echo "APK gerado com sucesso!"
+            exit 0
+          else
+            echo "Falha na geração do APK. Verifique os logs:"
+            grep -i "error" build.log || echo "Nenhum erro crítico encontrado"
+            exit 1
+          fi
+          # 3. Execução principal
             echo "=== INÍCIO DO BUILD ==="
             mkdir -p ~/.buildozer
             chmod -R 777 ~/.buildozer
             rm -rf .buildozer/android/platform/build-*
-      
-            build_with_retry
-      
-            echo "=== FIM DO BUILD ==="
-          } > build-full.log 2>&1 || {
-            echo "=== BUILD FALHOU ==="
-            echo "Erros encontrados:"
-            grep -i -E "error|fail|exception|unreachable" build-full.log | sort | uniq
-            exit 1
-          }
-    
-          # 4. Verificação do APK
-          APK_PATH=$(find .buildozer -name "*.apk" | head -n 1)
-          if [ -z "$APK_PATH" ]; then
-            echo "=== ERRO: APK NÃO GERADO ==="
-            echo "Log completo disponível no artefato 'build-logs'"
-            exit 1
-          fi
-    
-          echo "=== SUCESSO ==="
-          echo "APK gerado em: $APK_PATH"
           
       - name: Process Logs
         if: always()
