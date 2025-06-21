@@ -141,74 +141,54 @@ jobs:
             ~/.gradle/caches
           key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
 
-      - name: Build APK with Buildozer
-        env:
-          SHELL: /bin/bash
-          MAKEFLAGS: -j1
-          CFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=33 -D__ANDROID_MIN_SDK_VERSION__=23"
-          CXXFLAGS: "-D__GNUC_PREREQ\\(x,y\\)=1 -D__glibc_clang_prereq\\(x,y\\)=1 -D__ANDROID_API__=33 -D__ANDROID_MIN_SDK_VERSION__=23"
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
-          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
+      - name: Build APK with Proper Logging
+        id: build
         run: |
           set -ex
     
-          set -e  # Sai no primeiro erro real
+          # 1. Criar diretório para logs
+          mkdir -p build_logs
     
-          # Limpa builds anteriores
-          buildozer android clean
-    
-          # Build com tratamento de warnings
+          # 2. Executar build com redirecionamento de logs
           {
-            buildozer --verbose android debug 2>&1 | 
-            grep -v "WARNING" |
-            grep -v "Warning" || 
-            [ $? -eq 1 ]  # Ignora exit code 1 do grep quando não encontra matches
-          } > build.log
+            echo "=== INÍCIO DO BUILD ==="
+            buildozer --verbose android debug
+            echo "=== FIM DO BUILD ==="
+          } > build_logs/full.log 2>&1 || {
+            echo "=== BUILD FALHOU ==="
+            [ -f build_logs/full.log ] && {
+              echo "Erros encontrados:"
+              grep -i -E "error|fail|exception" build_logs/full.log | head -n 50
+            }
+            exit 1
+          }
     
-          # Verifica se o APK foi criado independentemente dos warnings
-          if ls .buildozer/android/platform/build-*/build/outputs/apk/debug/*.apk >/dev/null 2>&1; then
-            echo "APK gerado com sucesso!"
-            exit 0
-          else
-            echo "Falha na geração do APK. Verifique os logs:"
-            grep -i "error" build.log || echo "Nenhum erro crítico encontrado"
+          # 3. Verificar se o APK foi gerado
+          if ! find .buildozer -name "*.apk" | grep -q .; then
+            echo "=== ERRO: APK NÃO GERADO ==="
+            [ -f build_logs/full.log ] && {
+              echo "Últimas 50 linhas do log:"
+              tail -n 50 build_logs/full.log
+            }
             exit 1
           fi
-          # 3. Execução principal
-            echo "=== INÍCIO DO BUILD ==="
-            mkdir -p ~/.buildozer
-            chmod -R 777 ~/.buildozer
-            rm -rf .buildozer/android/platform/build-*
-          
-      - name: Process Logs
+
+      - name: Prepare Logs for Artifact
         if: always()
         run: |
-          # Cria log resumido
-          {
-            echo "=== ERROS ENCONTRADOS ==="
-            grep -i -E "error|fail|warning" build-full.log | head -n 100
-            echo "\n=== ÚLTIMAS 50 LINHAS ==="
-            tail -n 50 build-full.log
-          } > build-summary.log
+          # Garante que temos pelo menos um arquivo de log vazio se nada for encontrado
+          mkdir -p build_logs
+          touch build_logs/empty.log
     
-          # Exibe log resumido
-          cat build-summary.log
-          
-      - name: Upload APK Artifact
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: .buildozer/android/platform/build-*/build/outputs/apk/debug/*.apk
-          retention-days: 7
+          # Coleta todos os logs relevantes
+          find .buildozer -name "*.log" -exec cp {} build_logs \;
+          [ -f build.log ] && cp build.log build_logs/
+          [ -f build-full.log ] && cp build-full.log build_logs/
 
       - name: Upload Build Logs
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-logs
-          path: |
-            build.log
-            .buildozer/android/app/buildozer.log
+          path: build_logs/
           retention-days: 3
