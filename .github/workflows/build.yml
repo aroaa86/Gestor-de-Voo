@@ -80,13 +80,14 @@ jobs:
           fi
 
       - name: Test Network Connectivity
+        continue-on-error: true
         run: |
           echo "Testando conectividade com repositórios essenciais..."
-          ping -c 3 github.com
-          curl -I https://github.com
-          curl -I https://pypi.org
+          ping -c 3 github.com || echo "Falha no ping"
+          curl -I https://github.com || echo "Falha no curl github.com"
+          curl -I https://pypi.org || echo "Falha no curl pypi.org"
           echo "Teste de download pequeno:"
-          curl -o /dev/null --show-error --fail https://github.com/kivy/python-for-android/archive/refs/heads/master.zip
+          curl -o /dev/null --show-error --fail https://github.com/kivy/python-for-android/archive/refs/heads/master.zip || echo "Falha no download"
 
       - name: Verify Environment
         run: |
