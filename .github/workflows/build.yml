@@ -170,6 +170,9 @@ jobs:
             "sh>=2,<3" \
             git+https://github.com/kivy/python-for-android.git@develop
 
+      - name: Install correct wheel version
+        run: pip install "wheel~=0.43.0"
+
       - name: Build APK with logging
         id: build
         run: |
