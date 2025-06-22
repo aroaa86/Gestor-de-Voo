@@ -33,9 +33,10 @@ jobs:
             git python3-pip build-essential python3-dev \
             ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
             libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev \
-            libgstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+            libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
             autoconf automake libtool pkg-config libltdl-dev libffi-dev libssl-dev \
-            cmake unzip wget coreutils
+            cmake unzip wget coreutils \
+            libjpeg-dev libpng-dev libsqlite3-dev openjdk-8-jdk
 
       - name: Install Python and Buildozer dependencies
         run: |
