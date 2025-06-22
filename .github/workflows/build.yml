@@ -38,6 +38,7 @@ jobs:
             git \
             python3-pip \
             build-essential \
+            python3-dev \
             ffmpeg \
             libsdl2-dev \
             libsdl2-image-dev \
@@ -58,6 +59,9 @@ jobs:
             libltdl-dev \
             libffi-dev \
             libssl-dev \
+            libjpeg-dev \
+            libsqlite3-dev \
+            libncurses-dev \
             cmake \
             unzip \
             wget \
