@@ -30,42 +30,6 @@ jobs:
         run: |
           pip install "wheel==0.43.0"
           pip install -r requirements.txt
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            git \
-            python3-pip \
-            build-essential \
-            python3-dev \
-            ffmpeg \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixer-dev \
-            libsdl2-ttf-dev \
-            libportmidi-dev \
-            libswscale-dev \
-            libavformat-dev \
-            libavcodec-dev \
-            zlib1g-dev \
-            libgstreamer1.0 \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good \
-            autoconf \
-            automake \
-            libtool \
-            pkg-config \
-            libltdl-dev \
-            libffi-dev \
-            libssl-dev \
-            libjpeg-dev \
-            libsqlite3-dev \
-            libncurses-dev \
-            cmake \
-            unzip \
-            wget \
-            coreutils
             
       - name: Install Python and Buildozer dependencies
         run: |
