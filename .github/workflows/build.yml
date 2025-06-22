@@ -45,6 +45,13 @@ jobs:
 
       - name: Ensure Android Command-line Tools
         run: |
+          sudo mkdir -p /usr/local/lib/android
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+          sudo unzip cmdline-tools.zip -d /usr/local/lib/android/
+          sudo mkdir -p /usr/local/lib/android/sdk/cmdline-tools
+          sudo mv /usr/local/lib/android/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
+          sudo yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+          sudo /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
           # Download commandline-tools if not present
           ANDROID_SDK_ROOT="/usr/local/lib/android/sdk"
           mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
