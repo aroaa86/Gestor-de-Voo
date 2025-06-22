@@ -156,10 +156,14 @@ jobs:
       - name: Install docwriter
         run: pip install docwriter
 
-      - name: Upgrade Buildozer and python-for-android
+      - name: Install Python dependencies
         run: |
-          pip install --upgrade pip
-          pip install --upgrade buildozer==1.5.0 python-for-android==2022.7.2
+          python -m pip install --upgrade pip setuptools wheel
+          pip install \
+            Cython==0.29.33 \
+            buildozer==1.5.0 \
+            "sh>=2,<3" \
+            git+https://github.com/kivy/python-for-android.git@develop
 
       - name: Build APK with logging
         id: build
