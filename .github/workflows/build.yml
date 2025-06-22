@@ -122,6 +122,9 @@ jobs:
         id: build
         run: |
           set -ex
+          for i in 1 2 3; do
+            buildozer --verbose android debug && break || sleep 30
+          done
           mkdir -p build_logs
           {
             echo "=== INÍCIO DO BUILD ==="
