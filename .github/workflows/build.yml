@@ -122,14 +122,17 @@ jobs:
             exit 1
           fi
 
-      - name: Coletar logs
+      - name: Prepare Logs for Artifact
         if: always()
         run: |
           mkdir -p build_logs
           touch build_logs/empty.log
-          find .buildozer -name "*.log" -exec cp {} build_logs \;
-          [ -f build.log ] && cp build.log build_logs/
-          [ -f build-full.log ] && cp build-full.log build_logs/
+
+          # Coleta logs sem falhar se não houver nenhum
+          find .buildozer -name "*.log" -exec cp --parents {} build_logs/ \; || echo "Nenhum log encontrado em .buildozer"
+
+          [ -f build.log ] && cp build.log build_logs/ || echo "build.log não encontrado"
+          [ -f build-full.log ] && cp build-full.log build_logs/ || echo "build-full.log não encontrado"
 
       - name: Upload build logs
         if: always()
