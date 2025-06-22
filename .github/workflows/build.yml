@@ -63,6 +63,13 @@ jobs:
           fi
           export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
 
+      - name: Fix NDK Path
+        run: |
+          echo "Removendo NDK conflitante..."
+          sudo rm -rf /usr/local/lib/android/sdk/ndk/27.2.12479018
+          echo "ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
+
       - name: Configure Android SDK
         run: |
           ANDROID_HOME="/usr/local/lib/android/sdk"
