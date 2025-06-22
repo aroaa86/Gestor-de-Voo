@@ -43,6 +43,19 @@ jobs:
           pip install Cython==0.29.33 buildozer==1.5.0 "sh>=2,<3"
           pip install git+https://github.com/kivy/python-for-android.git@develop
 
+      - name: Ensure Android Command-line Tools
+        run: |
+          # Download commandline-tools if not present
+          ANDROID_SDK_ROOT="/usr/local/lib/android/sdk"
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+          cd "$ANDROID_SDK_ROOT/cmdline-tools"
+          if [ ! -d "latest" ]; then
+            wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+            unzip cmdline-tools.zip
+            mv cmdline-tools latest
+          fi
+          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+
       - name: Configure Android SDK and NDK
         run: |
           export ANDROID_HOME="/usr/local/lib/android/sdk"
